@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saját Tracker - PRIVÁT ADATOK</title>
+    <title>Saját Tracker - TITKOS KÓD</title>
     <!-- Beágyazott CSS stílusok -->
     <style>
         :root {
@@ -12,34 +12,92 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 20px;
+            margin: 0; /* Margin nullázása */
             background-color: #1e1e1e;
             color: #f0f0f0;
-            border-radius: 8px;
             padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Felülre igazítás */
+            min-height: 100vh; /* Teljes magasság */
         }
 
-        h1, h2, h3 {
-            color: var(--theme-color);
-            border-bottom: 2px solid #333;
-            padding-bottom: 5px;
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: #282828;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
         }
 
-        .loader {
+        /* --- BELÉPTETŐ KÉPERNYŐ STÍLUSOK --- */
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1e1e1e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
             text-align: center;
-            padding: 50px;
+            z-index: 1000;
         }
 
-        /* --- STÍLUSOK (ugyanazok, mint korábban) --- */
+        .login-box {
+            background-color: #333;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-box h2 {
+            color: var(--theme-color);
+            margin-bottom: 20px;
+        }
+        
+        #access-key-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background-color: #444;
+            color: #f0f0f0;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+
+        /* --- EGYÉB ALKALMAZÁS STÍLUSOK (megtartva) --- */
+        h1, h2, h3 { color: var(--theme-color); border-bottom: 2px solid #3d3d3d; padding-bottom: 5px; }
+        .loader { text-align: center; padding: 50px; }
         .color-picker-area { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
         .tabs button { background-color: #3e3e3e; color: #f0f0f0; margin-right: 5px; border-radius: 8px 8px 0 0; padding: 10px 15px; border: none; cursor: pointer; transition: background-color 0.2s; }
         .tabs .active-tab { background-color: var(--theme-color); color: #1e1e1e; }
-        .input-area { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; background-color: #282828; padding: 15px; border-radius: 8px; }
+        .input-area { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; background-color: #3e3e3e; padding: 15px; border-radius: 8px; }
         .tracker-list { list-style: none; padding: 0; }
-        .tracker-item { background: #2d2d2d; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid var(--theme-color); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4); flex-wrap: wrap; }
+        .tracker-item { background: #444; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid var(--theme-color); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4); flex-wrap: wrap; }
         .tracker-item.watched { border-left: 5px solid #28a745; opacity: 0.8; }
-        input:not([type="color"]), select { padding: 10px; border: 1px solid #555; border-radius: 4px; background-color: #3e3e3e; color: #f0f0f0; flex-grow: 1; min-width: 120px; }
-        button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background-color 0.2s, transform 0.1s; background-color: var(--theme-color); color: #1e1e1e; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); }
+        input:not([type="color"]), select { padding: 10px; border: 1px solid #555; border-radius: 6px; background-color: #3e3e3e; color: #f0f0f0; flex-grow: 1; min-width: 120px; }
+        button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background-color 0.2s, transform 0.1s; background-color: var(--theme-color); color: #1e1e1e; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); }
         button:hover { opacity: 0.9; transform: translateY(-1px); }
         .episode-controls { display: flex; align-items: center; gap: 10px; margin-right: 15px; }
         .episode-controls button { background-color: #555; color: #f0f0f0; padding: 5px 10px; box-shadow: none; }
@@ -49,27 +107,32 @@
         .item-details { display: flex; flex-direction: column; margin-right: 20px; }
         .item-details span { margin-top: 5px; font-size: 0.9em; color: #aaa; }
         .item-details a { color: var(--theme-color); text-decoration: none; font-size: 0.9em; margin-top: 3px; font-weight: 500; }
-        #access-denied-message { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #1e1e1e; color: #dc3545; display: none; justify-content: center; align-items: center; flex-direction: column; text-align: center; z-index: 1000; font-size: 1.5em; padding: 20px; }
+        #user-info { margin-top: 5px; margin-bottom: 20px; padding: 5px; background-color: #3e3e3e; border-radius: 4px; }
     </style>
 </head>
 <body>
-    <div id="access-denied-message">
-        <h1>❌ HOZZÁFÉRÉS MEGTAGADVA ❌</h1>
-        <p>Ez az alkalmazás csak a következő címen érhető el:</p>
-        <p style="color: yellow; font-weight: bold;" id="https://fireflamegod.github.io/TrackerForMe_/"></p>
-        <p style="font-size: 0.8em; color: #888;">(Az aktuális URL nem egyezik a beállított címmel.)</p>
+    <!-- 1. BELÉPTETŐ KÉPERNYŐ (Alapértelmezetten látható) -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>🔐 Privát Tracker Hozzáférés</h2>
+            <p>Kérlek, add meg a közös titkos kulcsot:</p>
+            <input type="password" id="access-key-input" placeholder="Titkos Kulcs">
+            <button class="login-button" onclick="checkAccessKey()">Belépés</button>
+            <div id="login-error" class="error-message"></div>
+        </div>
     </div>
-
-    <div id="main-app-content">
-        <h1>🎬 Tracker (Firestore Online)</h1>
-        <p id="user-info" style="font-size: 0.8em; color: #999;">Azonosítás folyamatban...</p>
+    
+    <!-- 2. FŐ TARTALOM (Alapértelmezésben rejtve) -->
+    <div id="main-app-content" class="container" style="display: none;">
+        <h1>🎬 Tracker (Közös Adatok)</h1>
+        <p id="user-info">Azonosítás folyamatban...</p>
 
         <!-- Loader a tartalom betöltése alatt -->
         <div id="loading-screen" class="loader">
             <h2 style="color: #666;">Betöltés és azonosítás...</h2>
         </div>
 
-        <!-- FŐ TARTALOM (Alapértelmezésben rejtve) -->
+        <!-- APP TARTALOM (A hitelesítés után látható) -->
         <div id="app-content-container" style="display: none;">
             <!-- Színválasztó -->
             <div class="color-picker-area">
@@ -89,22 +152,19 @@
                 
                 <div class="input-area">
                     <input type="text" id="cim-input" placeholder="Cím...">
-                    
                     <select id="tipus-select" onchange="toggleMaxEpisodeInput()"> 
                         <option value="film">Film</option>
                         <option value="sorozat">Sorozat</option>
                     </select>
-                    
                     <input type="number" id="max-epizod-input" placeholder="Max epizód" style="display: none;">
                     <input type="url" id="link-input" placeholder="Link (pl.: IMDb)">
-                    
                     <button onclick="addNewItem()">Hozzáadás</button>
                 </div>
                 
-                <h3>Nézendő Listám</h3>
+                <h3>Nézendő Listánk</h3>
                 <ul id="nezendo-lista" class="tracker-list"></ul>
                 
-                <h3>Megnézve Listám</h3>
+                <h3>Megnézve Listánk</h3>
                 <ul id="megnezve-lista" class="tracker-list"></ul>
             </div>
 
@@ -124,10 +184,10 @@
                     <button onclick="addNewGame()">Hozzáadás</button>
                 </div>
                 
-                <h3>Játszani szeretnék</h3>
+                <h3>Játszani szeretnénk</h3>
                 <ul id="game-nezendo-lista" class="tracker-list"></ul>
                 
-                <h3>Kijátszottam</h3>
+                <h3>Kijátszottuk</h3>
                 <ul id="game-megnezve-lista" class="tracker-list"></ul>
             </div>
         </div>
@@ -137,9 +197,7 @@
     // --- FIREBASE IMPORT ÉS KONFIGURÁCIÓ ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-    import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, query, setLogLevel } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
-    
-    // setLogLevel('debug'); // Hibakereséshez
+    import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
     // AZ ÁLTALAD MEGADOTT FIREBASE KONFIGURÁCIÓ
     const firebaseConfig = {
@@ -153,45 +211,89 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app); // ÚJ: Azonosítási szolgáltatás
+    const auth = getAuth(app); 
     
+    // --- BIZTONSÁGI KONFIGURÁCIÓ ---
+    
+    // !!! VÁLTOZTASD MEG EZT EGY BIZTONSÁGOSABB KULCSRA !!!
+    const SECRET_ACCESS_KEY = "pocoka0013"; 
+    const ACCESS_KEY_LOCAL_STORAGE = "trackerAccessGranted";
+
+    // A közös adatok helye: mindenki, aki belép, ugyanazt a mappát látja.
+    // Lényegében a kulcs birtoklása jelenti a jogosultságot.
+    // Ezt a "közös mappa" UID-t fogjuk használni a Firestore elérési útjához.
+    const SHARED_UID = "SHARED_FRIENDS_GROUP"; 
+
     // --- GLOBÁLIS VÁLTOZÓK ---
     let trackerList = []; 
     let gameList = [];    
-    let currentUserId = null; // Ide fogjuk tárolni a bejelentkezett felhasználó ID-jét
 
     const THEME_COLOR_KEY = 'trackerThemeColor';
     const DEFAULT_COLOR = '#ff8c00'; 
-    
-    // Ez a fő gyűjtemény, ami a felhasználó ID-hoz van kötve
     const MEDIA_COLLECTION_NAME = 'media';
     const GAME_COLLECTION_NAME = 'games';
 
-    // === ADATBÁZIS ELÉRÉSI HELYEK DINAMIKUS LÉTREHOZÁSA ===
+    // === 1. HOZZÁFÉRÉS ELLENŐRZÉS ===
+
+    window.checkAccessKey = function() {
+        const inputKey = document.getElementById('access-key-input').value.trim();
+        const errorDiv = document.getElementById('login-error');
+
+        if (inputKey === SECRET_ACCESS_KEY) {
+            // Sikeres belépés: eltároljuk a kulcsot a böngészőben, hogy ne kérje újra
+            localStorage.setItem(ACCESS_KEY_LOCAL_STORAGE, 'true');
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-app-content').style.display = 'block';
+            errorDiv.textContent = '';
+            
+            initAuthAndApp(); // Elindítjuk az alkalmazást
+        } else {
+            errorDiv.textContent = 'Hibás titkos kulcs!';
+            // Töröljük a korábbi jogosultságot, ha volt
+            localStorage.removeItem(ACCESS_KEY_LOCAL_STORAGE);
+        }
+    }
+    
+    function checkInitialAccess() {
+        if (localStorage.getItem(ACCESS_KEY_LOCAL_STORAGE) === 'true') {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-app-content').style.display = 'block';
+            initAuthAndApp();
+        } else {
+            // Ha nincs kulcs, marad a beléptető képernyőn
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('main-app-content').style.display = 'none';
+        }
+    }
+
+
+    // === 2. ADATBÁZIS ELÉRÉSI HELYEK DINAMIKUS LÉTREHOZÁSA ===
+    
+    // MINDENKI EZT A KÖZÖS ÚTVONALAT HASZNÁLJA A KÓDOS BELÉPTETÉS UTÁN
     function getMediaCollectionRef() {
-        if (!currentUserId) throw new Error("Azonosítás szükséges!");
-        // Az adatok a "users/{UID}/media" útvonalon tárolódnak
-        return collection(db, 'users', currentUserId, MEDIA_COLLECTION_NAME);
+        // A közös útvonal: users/SHARED_FRIENDS_GROUP/media
+        return collection(db, 'users', SHARED_UID, MEDIA_COLLECTION_NAME);
     }
     
     function getGameCollectionRef() {
-        if (!currentUserId) throw new Error("Azonosítás szükséges!");
-        // Az adatok a "users/{UID}/games" útvonalon tárolódnak
-        return collection(db, 'users', currentUserId, GAME_COLLECTION_NAME);
+        // A közös útvonal: users/SHARED_FRIENDS_GROUP/games
+        return collection(db, 'users', SHARED_UID, GAME_COLLECTION_NAME);
     }
 
-    // === AZONOSÍTÁS LOGIKA ===
+    // === 3. FIREBASE AZONOSÍTÁS ÉS APP INDÍTÁS ===
 
-    async function initAuth() {
+    async function initAuthAndApp() {
+        let actualUserId = null;
         try {
-            // Névtelen bejelentkezés (vagy bejelentkezés a korábban tárolt UID-vel)
+            // Bejelentkezés névtelenül, hogy legyen egy UID-nk a Firestore szabályokhoz
             const userCredential = await signInAnonymously(auth);
-            currentUserId = userCredential.user.uid;
+            actualUserId = userCredential.user.uid;
             
-            console.log("Sikeres névtelen bejelentkezés. UID:", currentUserId);
-            document.getElementById('user-info').textContent = `Felhasználó ID (UID): ${currentUserId}`;
+            console.log("Sikeres névtelen bejelentkezés. UID:", actualUserId);
+            // Itt a SHARED_UID-t használjuk az adatokhoz, de a valós UID-t azonosítási célra
+            document.getElementById('user-info').textContent = `Hozzáférés: Engedélyezve (UID: ${actualUserId.substring(0, 8)}...)`;
             
-            // Az azonosítás után betöltjük a téma színt, elindítjuk a listenert, és megjelenítjük a tartalmat
+            // App logika indítása
             loadThemeColor();
             startFirestoreListeners();
             document.getElementById('loading-screen').style.display = 'none';
@@ -199,16 +301,14 @@
 
         } catch (error) {
             console.error("Azonosítási hiba:", error);
-            document.getElementById('user-info').textContent = "Hiba az azonosításkor.";
+            document.getElementById('user-info').textContent = "Hiba az azonosításkor. Kérjük, engedélyezze a Névtelen bejelentkezést a Firebase Console-ban.";
         }
     }
 
-    // === FIREBASE ADAT BETÖLTÉSE ÉS FIGYELÉSE (onSnapshot) ===
+    // === 4. FIREBASE ADAT BETÖLTÉSE ÉS FIGYELÉSE ===
 
     function startFirestoreListeners() {
-        if (!currentUserId) return; // Védelmi mechanizmus
-        
-        // 1. Media lista figyelése - Valós idejű frissítés
+        // 1. Media lista figyelése
         onSnapshot(getMediaCollectionRef(), (snapshot) => {
             trackerList = snapshot.docs.map(doc => ({
                 firestoreId: doc.id,
@@ -219,7 +319,7 @@
             console.error("Hiba a media lista lekérésekor:", error);
         });
 
-        // 2. Játék lista figyelése - Valós idejű frissítés
+        // 2. Játék lista figyelése
         onSnapshot(getGameCollectionRef(), (snapshot) => {
             gameList = snapshot.docs.map(doc => ({
                 firestoreId: doc.id,
@@ -231,12 +331,9 @@
         });
     }
 
-    // === Médiák (Film/Sorozat) Logika (CRUD) ===
+    // === 5. CRUD FUNKCIÓK (az új referenciákat használják) ===
 
     window.addNewItem = async function() {
-        if (!currentUserId) return;
-        
-        // ... (A mezők kiolvasása és validálás marad)
         const cim = document.getElementById('cim-input').value.trim();
         const tipus = document.getElementById('tipus-select').value;
         const maxEpizodInput = document.getElementById('max-epizod-input').value;
@@ -254,21 +351,18 @@
         };
         
         try {
-            await addDoc(getMediaCollectionRef(), newItem); // Használjuk az új, UID-vel ellátott referenciát
+            await addDoc(getMediaCollectionRef(), newItem); 
         } catch (e) {
             console.error("Hiba az elem hozzáadásakor: ", e);
         }
         
-        // Mezők törlése
         document.getElementById('cim-input').value = '';
         document.getElementById('max-epizod-input').value = '';
         document.getElementById('link-input').value = '';
     }
 
     window.deleteItem = async function(firestoreId) {
-        if (!currentUserId) return;
         try {
-            // Dinamikus Doc referencia a felhasználó és a media gyűjteményen belül
             await deleteDoc(doc(getMediaCollectionRef(), firestoreId));
         } catch (e) {
             console.error("Hiba az elem törlésekor: ", e);
@@ -276,24 +370,19 @@
     }
 
     window.changeEpisodeCount = async function(firestoreId, delta) {
-        if (!currentUserId) return;
         const item = trackerList.find(item => item.firestoreId === firestoreId);
         
         if (item && item.tipus === 'sorozat') {
             let newCount = item.watchedEpisodes + delta;
             newCount = Math.max(0, newCount);
-
             if (item.maxEpisodes !== null && item.maxEpisodes > 0) {
                 newCount = Math.min(newCount, item.maxEpisodes);
             }
-
             let newStatus = item.statusz;
             if (item.maxEpisodes !== null && item.maxEpisodes > 0 && newCount === item.maxEpisodes) {
                 newStatus = 'megnézve';
             }
-            
             try {
-                // Dinamikus Doc referencia a felhasználó és a media gyűjteményen belül
                 await updateDoc(doc(getMediaCollectionRef(), firestoreId), {
                     watchedEpisodes: newCount,
                     statusz: newStatus
@@ -305,9 +394,7 @@
     }
 
     window.updateStatus = async function(firestoreId, newStatus) {
-        if (!currentUserId) return;
         try {
-            // Dinamikus Doc referencia a felhasználó és a media gyűjteményen belül
             await updateDoc(doc(getMediaCollectionRef(), firestoreId), {
                 statusz: newStatus
             });
@@ -316,11 +403,7 @@
         }
     }
 
-    // === Games Logika (CRUD) (Hasonlóan frissítve) ===
-
     window.addNewGame = async function() {
-        if (!currentUserId) return;
-        
         const cim = document.getElementById('game-cim-input').value.trim();
         const platform = document.getElementById('game-platform-select').value;
         
@@ -341,7 +424,6 @@
     }
 
     window.updateGameStatus = async function(firestoreId, newStatus) {
-        if (!currentUserId) return;
         try {
             await updateDoc(doc(getGameCollectionRef(), firestoreId), {
                 statusz: newStatus
@@ -352,7 +434,6 @@
     }
 
     window.deleteGameItem = async function(firestoreId) {
-        if (!currentUserId) return;
         try {
             await deleteDoc(doc(getGameCollectionRef(), firestoreId));
         } catch (e) {
@@ -360,43 +441,34 @@
         }
     }
 
-
-    // === Kezelő függvények (Theme, Tabs, Render) változatlanok ===
-
-    window.toggleMaxEpisodeInput = function() {
+    // --- Egyéb függvények (Theme, Tabs, Render) ---
+    window.toggleMaxEpisodeInput = function() { /* ... */
         const type = document.getElementById('tipus-select').value;
         const maxInput = document.getElementById('max-epizod-input');
         maxInput.style.display = (type === 'sorozat' ? 'block' : 'none');
         if (type === 'film') { maxInput.value = ''; }
     }
-
-    window.changeThemeColor = function(newColor) {
+    window.changeThemeColor = function(newColor) { /* ... */
         document.documentElement.style.setProperty('--theme-color', newColor);
         localStorage.setItem(THEME_COLOR_KEY, newColor);
     }
-
-    function loadThemeColor() {
+    function loadThemeColor() { /* ... */
         const savedColor = localStorage.getItem(THEME_COLOR_KEY) || DEFAULT_COLOR;
         const colorPicker = document.getElementById('color-picker');
         if (colorPicker) colorPicker.value = savedColor;
         changeThemeColor(savedColor);
     }
-
-    window.showTab = function(tabName) {
+    window.showTab = function(tabName) { /* ... */
         document.getElementById('media-tracker-content').style.display = (tabName === 'media' ? 'block' : 'none');
         document.getElementById('game-tracker-content').style.display = (tabName === 'game' ? 'block' : 'none');
-        
         const mediaTab = document.getElementById('media-tab');
         const gameTab = document.getElementById('game-tab');
-        
         if (mediaTab && gameTab) {
             mediaTab.classList.remove('active-tab');
             gameTab.classList.remove('active-tab');
             document.getElementById(tabName + '-tab').classList.add('active-tab');
         }
     }
-    
-    // A renderelés logikája is változatlan maradt
     function renderLists() { /* ... */
         const nezendoUl = document.getElementById('nezendo-lista');
         const megnezveUl = document.getElementById('megnezve-lista');
@@ -487,11 +559,9 @@
 
     // Alkalmazás indítása
     window.onload = () => {
-        // Mivel ez egy sandbox, az URL-ellenőrzést kihagyjuk, de ha élesíted, hagyd bent.
-        
         toggleMaxEpisodeInput();
         showTab('media'); 
-        initAuth(); // AZONOSÍTÁSSAL KEZDJÜK
+        checkInitialAccess(); // ELLENŐRIZZÜK AZ ELTÁROLT KULCSOT
     };
 
 </script>
