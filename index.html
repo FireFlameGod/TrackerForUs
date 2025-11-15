@@ -24,7 +24,7 @@
 
         .container {
             width: 100%;
-            /* FRISSÍTVE: MEGNÖVELT SZÉLESSÉG 1500px-re */
+            /* MEGNÖVELT SZÉLESSÉG 1500px */
             max-width: 1500px; 
             background-color: #282828;
             padding: 20px;
@@ -71,7 +71,7 @@
         .input-area > * {
             flex-basis: 0;
             flex-grow: 1;
-            min-width: 150px; /* Kicsit növeljük a minimum szélességet */
+            min-width: 150px; 
         }
         .input-area button { flex-grow: 0; flex-shrink: 0; min-width: 150px; }
 
@@ -243,8 +243,8 @@
     
     // --- BIZTONSÁGI KONFIGURÁCIÓ ---
     
-    // !!! FRISSÍTVE: A titkos kulcs Base64-ben kódolva (baratok-2025) !!!
-    const ENCODED_ACCESS_KEY = "YmFyYXRvay0yMDI1"; 
+    // !!! FRISSÍTVE: A titkos kulcs Base64-ben kódolva: "0013" (MDAxMw==) !!!
+    const ENCODED_ACCESS_KEY = "MDAxMw=="; 
     const ACCESS_KEY_LOCAL_STORAGE = "trackerAccessGranted";
 
     // Ez a KÖZÖS mappa neve a Firestore-ban.
