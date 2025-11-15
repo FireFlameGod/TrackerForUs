@@ -24,7 +24,8 @@
 
         .container {
             width: 100%;
-            max-width: 800px;
+            /* MEGNÖVELT SZÉLESSÉG */
+            max-width: 1100px; 
             background-color: #282828;
             padding: 20px;
             border-radius: 12px;
@@ -66,10 +67,19 @@
         .tabs button { background-color: #3e3e3e; color: #f0f0f0; margin-right: 5px; border-radius: 8px 8px 0 0; padding: 10px 15px; border: none; cursor: pointer; transition: background-color 0.2s; }
         .tabs .active-tab { background-color: var(--theme-color); color: #1e1e1e; }
         .input-area { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; background-color: #3e3e3e; padding: 15px; border-radius: 8px; }
+        /* INPUT ELEMEK MEGNÖVELT SZÉLESSÉGE, hogy kitöltse a szélesebb konténert */
+        .input-area > * {
+            flex-basis: 0;
+            flex-grow: 1;
+            min-width: 150px; /* Kicsit növeljük a minimum szélességet */
+        }
+        .input-area button { flex-grow: 0; flex-shrink: 0; min-width: 150px; }
+
+
         .tracker-list { list-style: none; padding: 0; }
         .tracker-item { background: #444; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid var(--theme-color); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4); flex-wrap: wrap; }
         .tracker-item.watched { border-left: 5px solid #28a745; opacity: 0.8; }
-        input:not([type="color"]), select { padding: 10px; border: 1px solid #555; border-radius: 6px; background-color: #3e3e3e; color: #f0f0f0; flex-grow: 1; min-width: 120px; }
+        input:not([type="color"]), select { padding: 10px; border: 1px solid #555; border-radius: 6px; background-color: #3e3e3e; color: #f0f0f0; }
         button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background-color 0.2s, transform 0.1s; background-color: var(--theme-color); color: #1e1e1e; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); }
         button:hover { opacity: 0.9; transform: translateY(-1px); }
         .logout-btn { background-color: #555; color: #f0f0f0; margin-left: 10px; }
@@ -285,7 +295,7 @@
         window.location.reload(); 
     }
     
-    // ÚJ: Haladó információk megjelenítése/elrejtése
+    // Haladó információk megjelenítése/elrejtése
     window.toggleAdvancedInfo = function() {
         const content = document.getElementById('advanced-info-content');
         const icon = document.getElementById('toggle-icon');
@@ -313,7 +323,7 @@
             
             console.log("Sikeres névtelen bejelentkezés. UID:", actualUserId);
 
-            // ÚJ: Haladó információk frissítése
+            // Haladó információk frissítése
             document.getElementById('shared-id-info').querySelector('strong').textContent = SHARED_UID;
             document.getElementById('user-id-info').querySelector('strong').textContent = actualUserId;
 
@@ -381,7 +391,6 @@
             }); 
         } catch (e) {
             console.error("Kritikus hiba az elem hozzáadásakor: ", e);
-            alert(`Hozzáadás sikertelen. Kérjük, ellenőrizze a Firestore Szabályokat!`);
         }
         
         document.getElementById('cim-input').value = '';
@@ -505,7 +514,6 @@
         if (type === 'film') { maxInput.value = ''; }
     }
     
-    // A renderelés változatlan maradt, de a teljesség kedvéért benne van
     function renderLists() { 
         const nezendoUl = document.getElementById('nezendo-lista');
         const megnezveUl = document.getElementById('megnezve-lista');
