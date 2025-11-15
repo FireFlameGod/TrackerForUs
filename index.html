@@ -797,16 +797,17 @@
             titleInput.style.display = 'none'; // Alapértelmezésben rejtve
             titleInput.onkeypress = (e) => { if(e.key === 'Enter') saveNewTitle(item.firestoreId); };
 
-            // 3. Szerkesztés gomb (Edit) - FRISSÍTVE A DEBUG LOGGAL ÉS LÁTHATÓBB SZÖVEGGEL
+            // 3. Szerkesztés gomb (Edit) - FRISSÍTVE AZ ESZEMÉNY DELEGÁCIÓHOZ
             const editButton = document.createElement('button');
-            editButton.textContent = '✏️ Szerk.'; // Láthatóbb szöveg
+            editButton.textContent = '✏️ Szerk.';
             editButton.id = `edit-btn-${item.firestoreId}`;
             editButton.className = 'title-action-btn edit-button';
             editButton.title = 'Cím szerkesztése';
-            editButton.onclick = () => {
-                console.log(`[DEBUG] 0. RAW CLICK EVENT for ${item.firestoreId}`); // ALACSONY SZINTŰ DEBUG
-                toggleEditMode(item.firestoreId);
-            };
+            // Esemény delegációhoz szükséges attribútumok
+            editButton.setAttribute('data-action', 'edit-media');
+            editButton.setAttribute('data-id', item.firestoreId);
+            // TÖRLÖLVE: Nincs inline onclick!
+
 
             // 4. Mentés gomb (Save)
             const saveButton = document.createElement('button');
@@ -930,6 +931,21 @@
             }
         });
     }
+    
+    // === ESZEMÉNY DELEGÁCIÓ A DINAMIKUS GOMBOKHOZ (Javítva a kattintási hibát) ===
+    document.addEventListener('click', function(event) {
+        const target = event.target;
+        
+        // Ellenőrizzük, hogy a kattintás a 'edit-media' adatattribútummal rendelkező gombon történt-e
+        if (target.matches('[data-action="edit-media"]')) {
+            const firestoreId = target.getAttribute('data-id');
+            // Alacsony szintű debug, ami biztosan lefut, ha a kattintás megtörtént
+            console.log(`[DEBUG DELEGATION] 0. DELEGATED CLICK EVENT for: ${firestoreId}`); 
+            toggleEditMode(firestoreId);
+        }
+        // Itt lehetne kezelni más delegált eseményeket is, pl. játékok szerkesztését.
+    });
+
 
     // Alkalmazás indítása
     window.onload = () => {
