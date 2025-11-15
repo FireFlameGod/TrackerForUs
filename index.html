@@ -24,7 +24,6 @@
 
         .container {
             width: 100%;
-            /* MEGNÖVELT SZÉLESSÉG 1500px */
             max-width: 1500px; 
             background-color: #282828;
             padding: 20px;
@@ -64,10 +63,54 @@
         /* --- ALKALMAZÁS STÍLUSOK --- */
         h1, h2, h3 { color: var(--theme-color); border-bottom: 2px solid #3d3d3d; padding-bottom: 5px; }
         .color-picker-area { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
-        .tabs button { background-color: #3e3e3e; color: #f0f0f0; margin-right: 5px; border-radius: 8px 8px 0 0; padding: 10px 15px; border: none; cursor: pointer; transition: background-color 0.2s; }
-        .tabs .active-tab { background-color: var(--theme-color); color: #1e1e1e; }
+        
+        /* Fő és Alb Tabok stílusa */
+        .tabs { margin-bottom: 10px; display: flex; flex-wrap: wrap; }
+        .tabs button { 
+            background-color: #3e3e3e; 
+            color: #f0f0f0; 
+            margin-right: 5px; 
+            margin-bottom: 5px; 
+            padding: 10px 15px; 
+            border: none; 
+            cursor: pointer; 
+            transition: background-color 0.2s; 
+            white-space: nowrap;
+            font-weight: bold;
+        }
+        
+        .main-tabs button {
+            border-radius: 8px 8px 0 0;
+            font-size: 1.1em;
+            padding: 12px 20px;
+        }
+
+        .main-tabs .active-main-tab { 
+            background-color: var(--theme-color); 
+            color: #1e1e1e; 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .sub-tabs {
+            margin-top: 10px;
+            padding-left: 20px; /* Behúzás, hogy jobban elkülönüljön */
+            border-bottom: 2px solid #3e3e3e;
+            margin-bottom: 20px;
+        }
+
+        .sub-tabs button {
+            border-radius: 6px 6px 0 0;
+            font-size: 0.9em;
+            padding: 8px 12px;
+            background-color: #4c4c4c;
+        }
+
+        .sub-tabs .active-sub-tab { 
+            background-color: var(--theme-color); 
+            color: #1e1e1e;
+        }
+        
         .input-area { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; background-color: #3e3e3e; padding: 15px; border-radius: 8px; }
-        /* INPUT ELEMEK MEGNÖVELT SZÉLESSÉGE, hogy kitöltse a szélesebb konténert */
         .input-area > * {
             flex-basis: 0;
             flex-grow: 1;
@@ -167,15 +210,25 @@
                 <input type="color" id="color-picker" value="#ff8c00" onchange="changeThemeColor(this.value)">
             </div>
 
-            <!-- Tab váltó gombok -->
-            <div class="tabs">
-                <button onclick="showTab('media')" class="active-tab" id="media-tab">🎬 Filmek & Sorozatok</button>
-                <button onclick="showTab('game')" id="game-tab">🎮 Játékok</button>
+            <!-- FŐ TAB VÁLTÓ GOMBOK -->
+            <div class="tabs main-tabs">
+                <button onclick="showMainTab('media')" class="active-main-tab" id="media-main-tab">🎬 Filmek & Sorozatok</button>
+                <button onclick="showMainTab('game')" id="game-main-tab">🎮 Játékok</button>
             </div>
+            
+            <!-- 1. MÉDIA TARTALOM (Filmek & Sorozatok) -->
+            <div id="media-content">
+                
+                <!-- AL-TABOK - Csak a média fül alatt láthatóak -->
+                <div id="media-sub-tabs" class="tabs sub-tabs" style="display: flex;">
+                    <button onclick="showSubTab('cdrama')" class="active-sub-tab" id="cdrama-sub-tab">🇨🇳 C-Drama</button>
+                    <button onclick="showSubTab('kdrama')" id="kdrama-sub-tab">🇰🇷 K-Drama</button>
+                    <button onclick="showSubTab('anime')" id="anime-sub-tab">🇯🇵 Anime</button>
+                    <button onclick="showSubTab('donghua')" id="donghua-sub-tab">🎎 Donghua</button>
+                    <button onclick="showSubTab('other')" id="other-sub-tab">🌍 Egyéb</button>
+                </div>
 
-            <!-- 1. MÉDIA TARTALOM -->
-            <div id="media-tracker-content">
-                <h2>🎬 Filmek & Sorozatok</h2>
+                <h2 id="media-category-title">🇨🇳 C-Drama</h2>
                 
                 <div class="input-area">
                     <input type="text" id="cim-input" placeholder="Cím...">
@@ -225,7 +278,7 @@
     // --- FIREBASE IMPORT ÉS KONFIGURÁCIÓ ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-    import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
     // AZ ÁLTALAD MEGADOTT FIREBASE KONFIGURÁCIÓ
     const firebaseConfig = {
@@ -251,13 +304,24 @@
     const SHARED_UID = "SHARED_FRIENDS_GROUP"; 
 
     // --- GLOBÁLIS VÁLTOZÓK ---
-    let trackerList = []; 
+    let trackerList = []; // Tartalmazza az összes médiaelemet
     let gameList = [];    
 
     const THEME_COLOR_KEY = 'trackerThemeColor';
     const DEFAULT_COLOR = '#ff8c00'; 
     const MEDIA_COLLECTION_NAME = 'media';
     const GAME_COLLECTION_NAME = 'games';
+
+    // Kategória kezelés
+    let currentCategory = 'cdrama'; // Alapértelmezett alkategória
+    const CATEGORY_MAP = {
+        'cdrama': '🇨🇳 C-Drama',
+        'kdrama': '🇰🇷 K-Drama',
+        'anime': '🇯🇵 Anime',
+        'donghua': '🎎 Donghua',
+        'other': '🌍 Egyéb',
+    };
+    const CATEGORIES = Object.keys(CATEGORY_MAP);
 
     // === 1. HOZZÁFÉRÉS ÉS BELÉPTETÉS ===
 
@@ -310,6 +374,7 @@
     // === 2. ADATBÁZIS ELÉRÉSI HELYEK DINAMIKUS LÉTREHOZÁSA ===
     
     function getMediaCollectionRef() {
+        // Minden média adatot ugyanabban a gyűjteményben tárolunk
         return collection(db, 'users', SHARED_UID, MEDIA_COLLECTION_NAME);
     }
     
@@ -334,10 +399,12 @@
             startFirestoreListeners();
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-content-container').style.display = 'block';
+            
+            // Kezdeti megjelenítés a 'media' fülön és a 'cdrama' alkategórián
+            showMainTab('media');
 
         } catch (error) {
             console.error("Azonosítási hiba:", error);
-            // Hiba esetén ide is írhatunk figyelmeztetést
             document.getElementById('shared-id-info').querySelector('strong').textContent = "HIBA: Ellenőrizze a konzolt!";
             document.getElementById('user-id-info').querySelector('strong').textContent = `Auth hiba: ${error.message}`;
             document.getElementById('loading-screen').style.display = 'none';
@@ -352,12 +419,13 @@
         onSnapshot(getMediaCollectionRef(), (snapshot) => {
             trackerList = snapshot.docs.map(doc => ({
                 firestoreId: doc.id,
+                // Biztosítjuk, hogy legyen alapértelmezett kategória, ha hiányzik a régi elemekről
+                category: doc.data().category || 'other', 
                 ...doc.data()
             }));
-            renderLists();
+            renderLists(); // Frissítés az összes média fülön
         }, (error) => {
-            console.error("Hiba a media lista lekérésekor (Firestore Rules valószínű): ", error);
-            document.getElementById('shared-id-info').querySelector('strong').textContent = `Firestore HIBA: ${error.message}`;
+            console.error("Hiba a media lista lekérésekor: ", error);
         });
 
         // Játék lista figyelése
@@ -368,8 +436,7 @@
             }));
             renderGameLists();
         }, (error) => {
-            console.error("Hiba a játék lista lekérésekor (Firestore Rules valószínű): ", error);
-            document.getElementById('shared-id-info').querySelector('strong').textContent = `Firestore HIBA: ${error.message}`;
+            console.error("Hiba a játék lista lekérésekor: ", error);
         });
     }
 
@@ -382,16 +449,20 @@
         const linkInput = document.getElementById('link-input').value.trim();
         
         if (cim === "") { console.log("Cím megadása kötelező."); return; }
+        
+        // Hozzáadjuk az aktuális alkategóriát
+        const newItem = {
+            cim: cim,
+            tipus: tipus,
+            statusz: "nézendő",
+            watchedEpisodes: (tipus === 'sorozat' ? 0 : null),
+            maxEpisodes: (tipus === 'sorozat' && maxEpizodInput ? parseInt(maxEpizodInput) : null),
+            link: (linkInput || null),
+            category: currentCategory // ÚJ: Aktuális kategória hozzáadva
+        };
 
         try {
-            await addDoc(getMediaCollectionRef(), {
-                cim: cim,
-                tipus: tipus,
-                statusz: "nézendő",
-                watchedEpisodes: (tipus === 'sorozat' ? 0 : null),
-                maxEpisodes: (tipus === 'sorozat' && maxEpizodInput ? parseInt(maxEpizodInput) : null),
-                link: (linkInput || null)
-            }); 
+            await addDoc(getMediaCollectionRef(), newItem); 
         } catch (e) {
             console.error("Kritikus hiba az elem hozzáadásakor: ", e);
         }
@@ -400,6 +471,8 @@
         document.getElementById('max-epizod-input').value = '';
         document.getElementById('link-input').value = '';
     }
+
+    // ... (deleteItem, changeEpisodeCount, updateStatus, addNewGame, updateGameStatus, deleteGameItem funkciók változatlanok) ...
 
     window.deleteItem = async function(firestoreId) {
         try {
@@ -445,7 +518,7 @@
             console.error("Hiba a státusz frissítésekor: ", e);
         }
     }
-
+    
     window.addNewGame = async function() {
         const cim = document.getElementById('game-cim-input').value.trim();
         const platform = document.getElementById('game-platform-select').value;
@@ -484,19 +557,52 @@
         }
     }
 
+
     // --- Segédfüggvények ---
     
-    window.showTab = function(tabName) {
-        document.getElementById('media-tracker-content').style.display = (tabName === 'media' ? 'block' : 'none');
-        document.getElementById('game-tracker-content').style.display = (tabName === 'game' ? 'block' : 'none');
-        const mediaTab = document.getElementById('media-tab');
-        const gameTab = document.getElementById('game-tab');
-        if (mediaTab && gameTab) {
-            mediaTab.classList.remove('active-tab');
-            gameTab.classList.remove('active-tab');
-            document.getElementById(tabName + '-tab').classList.add('active-tab');
+    // Fő fülek váltása (Filmek & Sorozatok vs. Játékok)
+    window.showMainTab = function(tabName) {
+        const mediaContent = document.getElementById('media-content');
+        const gameContent = document.getElementById('game-tracker-content');
+        const subTabs = document.getElementById('media-sub-tabs');
+        
+        // Fő tabok stílusának frissítése
+        document.getElementById('media-main-tab').classList.remove('active-main-tab');
+        document.getElementById('game-main-tab').classList.remove('active-main-tab');
+        document.getElementById(tabName + '-main-tab').classList.add('active-main-tab');
+
+        if (tabName === 'media') {
+            mediaContent.style.display = 'block';
+            gameContent.style.display = 'none';
+            subTabs.style.display = 'flex'; 
+            
+            // Ha átváltunk a média fülre, biztosítjuk, hogy az alkategória stílusa aktív legyen
+            showSubTab(currentCategory); 
+        } else {
+            mediaContent.style.display = 'none';
+            gameContent.style.display = 'block';
+            subTabs.style.display = 'none';
         }
     }
+
+    // Alkategóriák váltása
+    window.showSubTab = function(category) {
+        currentCategory = category;
+        const titleElement = document.getElementById('media-category-title');
+
+        // Alkategória stílusának frissítése
+        CATEGORIES.forEach(cat => {
+            const btn = document.getElementById(cat + '-sub-tab');
+            if (btn) btn.classList.remove('active-sub-tab');
+        });
+        document.getElementById(category + '-sub-tab').classList.add('active-sub-tab');
+        
+        // Cím frissítése
+        titleElement.textContent = CATEGORY_MAP[category];
+        
+        renderLists(); // Új kategória adatok megjelenítése
+    }
+
 
     window.changeThemeColor = function(newColor) {
         document.documentElement.style.setProperty('--theme-color', newColor);
@@ -517,6 +623,7 @@
         if (type === 'film') { maxInput.value = ''; }
     }
     
+    // Lista megjelenítése - FRISSÍTVE KATEGÓRIA SZŰRÉSSEL
     function renderLists() { 
         const nezendoUl = document.getElementById('nezendo-lista');
         const megnezveUl = document.getElementById('megnezve-lista');
@@ -524,7 +631,10 @@
         nezendoUl.innerHTML = '';
         megnezveUl.innerHTML = '';
         
-        trackerList.forEach(item => {
+        // Szűrés az aktuális kategóriára
+        const filteredList = trackerList.filter(item => item.category === currentCategory);
+
+        filteredList.forEach(item => {
             const li = document.createElement('li');
             li.className = `tracker-item ${item.statusz === 'megnézve' ? 'watched' : ''}`;
             
@@ -540,8 +650,12 @@
             if (item.tipus === 'sorozat') {
                 const episodeControls = document.createElement('div');
                 episodeControls.className = 'episode-controls';
-                const episodeProgress = (item.maxEpisodes !== null && item.maxEpisodes !== undefined) ? ` / ${item.maxEpisodes}` : '';
-                episodeControls.innerHTML = `<span>Epizódok: <strong>${item.watchedEpisodes}${episodeProgress}</strong></span><button onclick="changeEpisodeCount('${item.firestoreId}', -1)">-</button><button onclick="changeEpisodeCount('${item.firestoreId}', 1)">+</button>`;
+                // Ellenőrizzük, hogy az epizód számok léteznek-e mielőtt megjelenítjük
+                const watched = item.watchedEpisodes !== null && item.watchedEpisodes !== undefined ? item.watchedEpisodes : 0;
+                const max = item.maxEpisodes !== null && item.maxEpisodes !== undefined ? item.maxEpisodes : '?';
+                const episodeProgress = (max !== '?') ? ` / ${max}` : '';
+                
+                episodeControls.innerHTML = `<span>Epizódok: <strong>${watched}${episodeProgress}</strong></span><button onclick="changeEpisodeCount('${item.firestoreId}', -1)">-</button><button onclick="changeEpisodeCount('${item.firestoreId}', 1)">+</button>`;
                 controls.appendChild(episodeControls);
             }
             
@@ -623,7 +737,6 @@
     // Alkalmazás indítása
     window.onload = () => {
         toggleMaxEpisodeInput();
-        showTab('media'); 
         checkInitialAccess(); 
     };
 
