@@ -134,12 +134,12 @@
         
         /* ÚJ, KISEBB GOMB STÍLUSOK A CÍMHEZ */
         .title-action-btn { 
-            padding: 5px 10px; /* Kicsit nagyobb padding a jobb kattinthatóságért */
-            font-size: 0.9em; /* Kicsit nagyobb betűméret */
+            padding: 5px 10px; 
+            font-size: 0.9em; 
             margin-left: 5px;
             box-shadow: none;
             transition: background-color 0.2s;
-            background-color: var(--theme-color); /* Használjuk a téma színt */
+            background-color: var(--theme-color); 
             color: #1e1e1e;
             border-radius: 4px;
         }
@@ -149,8 +149,8 @@
         }
 
         /* Külön Mentés és Mégse színek, amelyek jobban illeszkednek a téma színéhez */
-        .save-button { background-color: #28a745; color: white; } /* Mentés zöld */
-        .cancel-button { background-color: #6c757d; color: white; } /* Mégse szürke */
+        .save-button { background-color: #28a745; color: white; } 
+        .cancel-button { background-color: #6c757d; color: white; } 
 
         .delete-button { background-color: #dc3545; color: white; margin-left: 10px; }
         .item-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
@@ -160,7 +160,6 @@
             display: flex; 
             align-items: center; 
             gap: 5px; 
-            /* A címszerkesztő mező igazítása a gombokhoz */
             flex-wrap: wrap;
         } 
 
@@ -175,7 +174,7 @@
             border-radius: 4px; 
             border: 1px solid var(--theme-color); 
             background-color: #333;
-            max-width: 250px; /* Hogy ne nyúljon túl nagyra */
+            max-width: 250px; 
             box-sizing: border-box;
         }
 
@@ -565,6 +564,7 @@
 
     // CÍM SZERKESZTÉSE FIREBASE-BEN
     window.saveNewTitle = async function(firestoreId) {
+        console.log(`[DEBUG] saveNewTitle TRIGGERED for: ${firestoreId}`);
         const input = document.getElementById(`title-edit-${firestoreId}`);
         const newTitle = input ? input.value.trim() : null;
         
@@ -580,33 +580,38 @@
                 cim: newTitle
             });
             // Az onSnapshot újrarendereli a listát, így csak a szerkesztő módot kapcsoljuk ki
-            // NOTE: A Firetore frissítés miatt fog automatikusan újrarenderelni.
-            // A toggleEditMode-ot csak a vizuális visszaváltáshoz hívjuk meg (ha a Firestore lassan szinkronizálna)
             toggleEditMode(firestoreId); 
         } catch (e) {
             console.error("Hiba a cím frissítésekor: ", e);
         }
     }
     
-    // CÍM SZERKESZTÉSI MÓD VÁLTÁSA
+    // CÍM SZERKESZTÉSI MÓD VÁLTÁSA - FRISSÍTVE A DEBUG LOGOKKAL
     window.toggleEditMode = function(firestoreId) {
-        console.log(`[DEBUG] Attempting to toggle edit mode for: ${firestoreId}`);
+        console.log(`[DEBUG] 1. toggleEditMode TRIGGERED for: ${firestoreId}`);
         const display = document.getElementById(`title-display-${firestoreId}`);
         const input = document.getElementById(`title-edit-${firestoreId}`);
         const editBtn = document.getElementById(`edit-btn-${firestoreId}`);
         const saveBtn = document.getElementById(`save-btn-${firestoreId}`);
         const cancelBtn = document.getElementById(`cancel-btn-${firestoreId}`);
         
+        // Részletes ellenőrzés a hiányzó elemekre
         if (!display || !input || !editBtn || !saveBtn || !cancelBtn) {
-            console.error(`[DEBUG] MISSING ELEMENTS for ${firestoreId}. Check rendering IDs.`);
+            console.error(`[DEBUG] 2. MISSING ELEMENTS for ${firestoreId}. 
+                Display: ${!!display}, 
+                Input: ${!!input}, 
+                EditBtn: ${!!editBtn}, 
+                SaveBtn: ${!!saveBtn}, 
+                CancelBtn: ${!!cancelBtn}`);
             return; 
         } 
-        
+        console.log("[DEBUG] 3. All elements found. Proceeding with toggle.");
+
         // Megnézzük, hogy szerkesztési módban van-e (a megjelenített elem rejtve van-e)
         const isEditing = display.style.display === 'none';
 
         if (!isEditing) {
-            console.log("[DEBUG] Switching to EDIT mode.");
+            console.log("[DEBUG] 4. Switching to EDIT mode.");
             // Szerkesztési mód bekapcsolása
             display.style.display = 'none';
             input.style.display = 'inline-block';
@@ -614,10 +619,12 @@
             editBtn.style.display = 'none';
             saveBtn.style.display = 'inline-block';
             cancelBtn.style.display = 'inline-block';
+            
+            // Fókusz az input mezőre
             input.focus();
             input.select();
         } else {
-            console.log("[DEBUG] Switching to DISPLAY mode.");
+            console.log("[DEBUG] 5. Switching to DISPLAY mode.");
             // Szerkesztési mód kikapcsolása (Mégse/Mentés után)
             display.style.display = 'inline-block';
             input.style.display = 'none';
@@ -769,6 +776,8 @@
             titleDisplay.id = `title-display-${item.firestoreId}`;
             titleDisplay.textContent = item.cim;
             titleDisplay.style.display = 'inline-block'; // Explicit beállítás
+            titleDisplay.style.marginRight = '5px'; // Kis térköz, hogy a gombok ne legyenek rátapadva
+            
 
             // 2. Szerkeszthető input mező
             const titleInput = document.createElement('input');
@@ -809,7 +818,7 @@
             titleContainer.appendChild(titleInput);
             titleContainer.appendChild(editButton);
             titleContainer.appendChild(saveButton);
-            titleContainer.appendChild(cancelButton); // Mind a 3 gomb bekerül a titleContainer-be
+            titleContainer.appendChild(cancelButton); // Mind az 3 gomb bekerül a titleContainer-be
 
             
             itemDetails.appendChild(titleContainer);
