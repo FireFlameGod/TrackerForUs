@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saját Tracker - TITKOS KÓD</title>
+    <title>Tracker</title>
     <!-- Beágyazott CSS stílusok -->
     <style>
         :root {
@@ -39,7 +39,7 @@
             width: 100%;
             height: 100%;
             background-color: #1e1e1e;
-            display: none; /* Kezdetben rejtve, a JS állítja be */
+            display: none; 
             justify-content: center;
             align-items: center;
             flex-direction: column;
@@ -62,15 +62,53 @@
 
         /* --- ALKALMAZÁS STÍLUSOK --- */
         h1, h2, h3 { color: var(--theme-color); border-bottom: 2px solid #3d3d3d; padding-bottom: 5px; }
+        .color-picker-area { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
+        .tabs button { background-color: #3e3e3e; color: #f0f0f0; margin-right: 5px; border-radius: 8px 8px 0 0; padding: 10px 15px; border: none; cursor: pointer; transition: background-color 0.2s; }
+        .tabs .active-tab { background-color: var(--theme-color); color: #1e1e1e; }
         .input-area { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; background-color: #3e3e3e; padding: 15px; border-radius: 8px; }
+        .tracker-list { list-style: none; padding: 0; }
         .tracker-item { background: #444; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid var(--theme-color); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4); flex-wrap: wrap; }
+        .tracker-item.watched { border-left: 5px solid #28a745; opacity: 0.8; }
         input:not([type="color"]), select { padding: 10px; border: 1px solid #555; border-radius: 6px; background-color: #3e3e3e; color: #f0f0f0; flex-grow: 1; min-width: 120px; }
         button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background-color 0.2s, transform 0.1s; background-color: var(--theme-color); color: #1e1e1e; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); }
         button:hover { opacity: 0.9; transform: translateY(-1px); }
         .logout-btn { background-color: #555; color: #f0f0f0; margin-left: 10px; }
-        
+        .episode-controls { display: flex; align-items: center; gap: 10px; margin-right: 15px; }
+        .episode-controls button { background-color: #555; color: #f0f0f0; padding: 5px 10px; box-shadow: none; }
+        .delete-button { background-color: #dc3545; color: white; margin-left: 10px; }
+        .item-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
+        .item-details { display: flex; flex-direction: column; margin-right: 20px; }
+        .item-details span { margin-top: 5px; font-size: 0.9em; color: #aaa; }
+        .item-details a { color: var(--theme-color); text-decoration: none; font-size: 0.9em; margin-top: 3px; font-weight: 500; }
         .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .info-area { font-size: 0.8em; color: #999; }
+        
+        /* --- HALADÓ ADATOK STÍLUSA --- */
+        #advanced-info-toggle {
+            background-color: #333;
+            color: #f0f0f0;
+            padding: 8px 12px;
+            font-size: 0.9em;
+            margin-top: 15px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #advanced-info-content {
+            background-color: #3e3e3e;
+            padding: 10px 15px;
+            border-radius: 0 0 8px 8px;
+            border-top: 1px solid #555;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+        #advanced-info-content p {
+            margin: 5px 0;
+        }
+        #advanced-info-content strong {
+            color: var(--theme-color);
+        }
     </style>
 </head>
 <body>
@@ -93,8 +131,6 @@
             <button class="logout-btn" onclick="logout()">Kijelentkezés 🚪</button>
         </div>
         
-        <p class="info-area" id="user-info">Azonosítás folyamatban...</p>
-
         <!-- Loader a tartalom betöltése alatt -->
         <div id="loading-screen" class="loader">
             <h2 style="color: #666;">Betöltés és szinkronizálás...</h2>
@@ -102,6 +138,19 @@
 
         <!-- APP TARTALOM (A hitelesítés után látható) -->
         <div id="app-content-container" style="display: none;">
+            
+            <!-- HALADÓ ADATOK LENYITHATÓ SZEKCIÓ -->
+            <button id="advanced-info-toggle" onclick="toggleAdvancedInfo()">
+                <span>Haladó adatok (hibakeresés) ⚙️</span>
+                <span id="toggle-icon">▼</span>
+            </button>
+            <div id="advanced-info-content" style="display: none;">
+                <p id="shared-id-info">Közös mappa ID: <strong></strong></p>
+                <p id="user-id-info">Azonosító (Anonim UID): <strong></strong></p>
+            </div>
+            
+            <hr style="border-top: 1px solid #333; margin: 15px 0;">
+
             <!-- Színválasztó -->
             <div class="color-picker-area">
                 <span>Kiemelő szín:</span>
@@ -124,6 +173,7 @@
                         <option value="film">Film</option>
                         <option value="sorozat">Sorozat</option>
                     </select>
+                    <!-- Ezt a mezőt a JS rejti/mutatja -->
                     <input type="number" id="max-epizod-input" placeholder="Max epizód" style="display: none;">
                     <input type="url" id="link-input" placeholder="Link (pl.: IMDb)">
                     <button onclick="addNewItem()">Hozzáadás</button>
@@ -187,8 +237,7 @@
     const SECRET_ACCESS_KEY = "0013"; 
     const ACCESS_KEY_LOCAL_STORAGE = "trackerAccessGranted";
 
-    // Ez a KÖZÖS mappa neve a Firestore-ban. 
-    // ELLENŐRIZZE, hogy ez szerepel-e a Biztonsági Szabályokban!
+    // Ez a KÖZÖS mappa neve a Firestore-ban.
     const SHARED_UID = "SHARED_FRIENDS_GROUP"; 
 
     // --- GLOBÁLIS VÁLTOZÓK ---
@@ -225,7 +274,6 @@
             document.getElementById('main-app-content').style.display = 'block';
             initAuthAndApp();
         } else {
-            // Ha nincs kulcs, mutatjuk a beléptető képernyőt
             document.getElementById('login-screen').style.display = 'flex';
             document.getElementById('main-app-content').style.display = 'none';
         }
@@ -236,16 +284,23 @@
         localStorage.removeItem(ACCESS_KEY_LOCAL_STORAGE);
         window.location.reload(); 
     }
+    
+    // ÚJ: Haladó információk megjelenítése/elrejtése
+    window.toggleAdvancedInfo = function() {
+        const content = document.getElementById('advanced-info-content');
+        const icon = document.getElementById('toggle-icon');
+        const isHidden = content.style.display === 'none';
+        content.style.display = isHidden ? 'block' : 'none';
+        icon.textContent = isHidden ? '▲' : '▼';
+    }
 
     // === 2. ADATBÁZIS ELÉRÉSI HELYEK DINAMIKUS LÉTREHOZÁSA ===
     
     function getMediaCollectionRef() {
-        // Közös útvonal: users/SHARED_FRIENDS_GROUP/media
         return collection(db, 'users', SHARED_UID, MEDIA_COLLECTION_NAME);
     }
     
     function getGameCollectionRef() {
-        // Közös útvonal: users/SHARED_FRIENDS_GROUP/games
         return collection(db, 'users', SHARED_UID, GAME_COLLECTION_NAME);
     }
 
@@ -253,16 +308,15 @@
 
     async function initAuthAndApp() {
         try {
-            // Névtelen bejelentkezés a jogosultság megszerzéséhez
             const userCredential = await signInAnonymously(auth);
             const actualUserId = userCredential.user.uid;
             
             console.log("Sikeres névtelen bejelentkezés. UID:", actualUserId);
 
-            // Információ megjelenítése a felhasználónak
-            document.getElementById('user-info').innerHTML = `<strong>Közös mappa ID:</strong> ${SHARED_UID} | <strong>Azonosító:</strong> ${actualUserId.substring(0, 8)}...`;
-            
-            // App logika indítása
+            // ÚJ: Haladó információk frissítése
+            document.getElementById('shared-id-info').querySelector('strong').textContent = SHARED_UID;
+            document.getElementById('user-id-info').querySelector('strong').textContent = actualUserId;
+
             loadThemeColor();
             startFirestoreListeners();
             document.getElementById('loading-screen').style.display = 'none';
@@ -270,16 +324,19 @@
 
         } catch (error) {
             console.error("Azonosítási hiba:", error);
-            // Ha a Firestore-szabályok rosszak, a bejelentkezés még sikeres lehet, de a lekérdezések elbuknak.
-            document.getElementById('user-info').textContent = "Hiba: Azonosítás OK, de a lekérdezés ELAKADT. ELLENŐRIZZE A FIRESTORE SZABÁLYOKAT!";
+            // Hiba esetén ide is írhatunk figyelmeztetést
+            document.getElementById('shared-id-info').querySelector('strong').textContent = "HIBA: Ellenőrizze a konzolt!";
+            document.getElementById('user-id-info').querySelector('strong').textContent = `Auth hiba: ${error.message}`;
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('app-content-container').style.display = 'block';
         }
     }
 
     // === 4. FIREBASE ADAT BETÖLTÉSE ÉS FIGYELÉSE ===
 
     function startFirestoreListeners() {
-        // A listener a hiba forrása lehet, ha a szabályok rosszak.
-        const mediaUnsub = onSnapshot(getMediaCollectionRef(), (snapshot) => {
+        // Media lista figyelése
+        onSnapshot(getMediaCollectionRef(), (snapshot) => {
             trackerList = snapshot.docs.map(doc => ({
                 firestoreId: doc.id,
                 ...doc.data()
@@ -287,11 +344,11 @@
             renderLists();
         }, (error) => {
             console.error("Hiba a media lista lekérésekor (Firestore Rules valószínű): ", error);
-            // Hiba esetén jelezzük a UI-n
-            document.getElementById('user-info').textContent = `Hiba a média adatok betöltésekor: ${error.message}`;
+            document.getElementById('shared-id-info').querySelector('strong').textContent = `Firestore HIBA: ${error.message}`;
         });
 
-        const gameUnsub = onSnapshot(getGameCollectionRef(), (snapshot) => {
+        // Játék lista figyelése
+        onSnapshot(getGameCollectionRef(), (snapshot) => {
             gameList = snapshot.docs.map(doc => ({
                 firestoreId: doc.id,
                 ...doc.data()
@@ -299,69 +356,176 @@
             renderGameLists();
         }, (error) => {
             console.error("Hiba a játék lista lekérésekor (Firestore Rules valószínű): ", error);
-            document.getElementById('user-info').textContent = `Hiba a játék adatok betöltésekor: ${error.message}`;
+            document.getElementById('shared-id-info').querySelector('strong').textContent = `Firestore HIBA: ${error.message}`;
         });
-        
-        // Normál esetben gondoskodni kellene az unsub-ról, de ez egy single-page app, így maradhat.
     }
 
-    // A CRUD függvények (addNewItem, deleteItem, updateStatus, stb.) kiegészítve hibakezeléssel:
+    // === 5. CRUD FUNKCIÓK ===
+
     window.addNewItem = async function() {
-        // ... (A beolvasás és validálás marad)
         const cim = document.getElementById('cim-input').value.trim();
-        if (cim === "") { console.log("Cím megadása kötelező."); return; }
-        // ...
+        const tipus = document.getElementById('tipus-select').value;
+        const maxEpizodInput = document.getElementById('max-epizod-input').value;
+        const linkInput = document.getElementById('link-input').value.trim();
         
+        if (cim === "") { console.log("Cím megadása kötelező."); return; }
+
         try {
             await addDoc(getMediaCollectionRef(), {
                 cim: cim,
-                tipus: document.getElementById('tipus-select').value,
+                tipus: tipus,
                 statusz: "nézendő",
-                watchedEpisodes: (document.getElementById('tipus-select').value === 'sorozat' ? 0 : null),
-                maxEpisodes: (document.getElementById('tipus-select').value === 'sorozat' ? parseInt(document.getElementById('max-epizod-input').value) : null),
-                link: (document.getElementById('link-input').value.trim() || null)
+                watchedEpisodes: (tipus === 'sorozat' ? 0 : null),
+                maxEpisodes: (tipus === 'sorozat' && maxEpizodInput ? parseInt(maxEpizodInput) : null),
+                link: (linkInput || null)
             }); 
-            console.log("Új elem sikeresen hozzáadva.");
         } catch (e) {
             console.error("Kritikus hiba az elem hozzáadásakor: ", e);
-            document.getElementById('user-info').textContent = `Hozzáadás sikertelen. Kérjük, ellenőrizze a Firestore Szabályokat! (${e.message.substring(0, 50)}...)`;
+            alert(`Hozzáadás sikertelen. Kérjük, ellenőrizze a Firestore Szabályokat!`);
         }
-        // ... (Mezők törlése)
+        
+        document.getElementById('cim-input').value = '';
+        document.getElementById('max-epizod-input').value = '';
+        document.getElementById('link-input').value = '';
     }
 
-    // A többi CRUD függvény (deleteItem, updateStatus, addNewGame, stb.) hasonlóan hibakezeléssel
     window.deleteItem = async function(firestoreId) {
         try {
             await deleteDoc(doc(getMediaCollectionRef(), firestoreId));
         } catch (e) {
             console.error("Hiba az elem törlésekor: ", e);
-            document.getElementById('user-info').textContent = `Törlés sikertelen: ${e.message.substring(0, 50)}...`;
         }
     }
-    
-    // ... (A többi CRUD függvény megmarad, a hibakezelés hasonlóan illesztendő be)
 
-    // === A renderelés és egyéb függvények változatlanok ===
-    window.toggleMaxEpisodeInput = function() { /* ... */ }
-    window.changeThemeColor = function(newColor) { /* ... */ }
-    function loadThemeColor() { /* ... */ }
-    window.showTab = function(tabName) { /* ... */ }
-    function renderLists() { /* ... */ 
+    window.changeEpisodeCount = async function(firestoreId, delta) {
+        const item = trackerList.find(item => item.firestoreId === firestoreId);
+        
+        if (item && item.tipus === 'sorozat') {
+            let newCount = item.watchedEpisodes + delta;
+            newCount = Math.max(0, newCount);
+            if (item.maxEpisodes !== null && item.maxEpisodes > 0) {
+                newCount = Math.min(newCount, item.maxEpisodes);
+            }
+            let newStatus = item.statusz;
+            if (item.maxEpisodes !== null && item.maxEpisodes > 0 && newCount === item.maxEpisodes) {
+                newStatus = 'megnézve';
+            } else if (newStatus === 'megnézve' && newCount < item.maxEpisodes) {
+                 newStatus = 'nézendő'; 
+            }
+
+            try {
+                await updateDoc(doc(getMediaCollectionRef(), firestoreId), {
+                    watchedEpisodes: newCount,
+                    statusz: newStatus
+                });
+            } catch (e) {
+                console.error("Hiba az epizód frissítésekor: ", e);
+            }
+        }
+    }
+
+    window.updateStatus = async function(firestoreId, newStatus) {
+        try {
+            await updateDoc(doc(getMediaCollectionRef(), firestoreId), {
+                statusz: newStatus
+            });
+        } catch (e) {
+            console.error("Hiba a státusz frissítésekor: ", e);
+        }
+    }
+
+    window.addNewGame = async function() {
+        const cim = document.getElementById('game-cim-input').value.trim();
+        const platform = document.getElementById('game-platform-select').value;
+        
+        if (cim === "") { console.log("Játék cím megadása kötelező."); return; }
+
+        const newItem = {
+            cim: cim,
+            platform: platform,
+            statusz: "játszandó" 
+        };
+        
+        try {
+            await addDoc(getGameCollectionRef(), newItem);
+        } catch (e) {
+            console.error("Hiba a játék hozzáadásakor: ", e);
+        }
+        document.getElementById('game-cim-input').value = ''; 
+    }
+
+    window.updateGameStatus = async function(firestoreId, newStatus) {
+        try {
+            await updateDoc(doc(getGameCollectionRef(), firestoreId), {
+                statusz: newStatus
+            });
+        } catch (e) {
+            console.error("Hiba a játék státusz frissítésekor: ", e);
+        }
+    }
+
+    window.deleteGameItem = async function(firestoreId) {
+        try {
+            await deleteDoc(doc(getGameCollectionRef(), firestoreId));
+        } catch (e) {
+            console.error("Hiba a játék törlésekor: ", e);
+        }
+    }
+
+    // --- Segédfüggvények ---
+    
+    window.showTab = function(tabName) {
+        document.getElementById('media-tracker-content').style.display = (tabName === 'media' ? 'block' : 'none');
+        document.getElementById('game-tracker-content').style.display = (tabName === 'game' ? 'block' : 'none');
+        const mediaTab = document.getElementById('media-tab');
+        const gameTab = document.getElementById('game-tab');
+        if (mediaTab && gameTab) {
+            mediaTab.classList.remove('active-tab');
+            gameTab.classList.remove('active-tab');
+            document.getElementById(tabName + '-tab').classList.add('active-tab');
+        }
+    }
+
+    window.changeThemeColor = function(newColor) {
+        document.documentElement.style.setProperty('--theme-color', newColor);
+        localStorage.setItem(THEME_COLOR_KEY, newColor);
+    }
+    
+    function loadThemeColor() {
+        const savedColor = localStorage.getItem(THEME_COLOR_KEY) || DEFAULT_COLOR;
+        const colorPicker = document.getElementById('color-picker');
+        if (colorPicker) colorPicker.value = savedColor;
+        changeThemeColor(savedColor);
+    }
+
+    window.toggleMaxEpisodeInput = function() {
+        const type = document.getElementById('tipus-select').value;
+        const maxInput = document.getElementById('max-epizod-input');
+        maxInput.style.display = (type === 'sorozat' ? 'block' : 'none');
+        if (type === 'film') { maxInput.value = ''; }
+    }
+    
+    // A renderelés változatlan maradt, de a teljesség kedvéért benne van
+    function renderLists() { 
         const nezendoUl = document.getElementById('nezendo-lista');
         const megnezveUl = document.getElementById('megnezve-lista');
         if (!nezendoUl || !megnezveUl) return;
         nezendoUl.innerHTML = '';
         megnezveUl.innerHTML = '';
+        
         trackerList.forEach(item => {
             const li = document.createElement('li');
             li.className = `tracker-item ${item.statusz === 'megnézve' ? 'watched' : ''}`;
+            
             const itemDetails = document.createElement('div');
             itemDetails.className = 'item-details';
             const linkHtml = item.link ? `<a href="${item.link}" target="_blank">Link 🔗</a>` : '';
             itemDetails.innerHTML = `<strong>${item.cim}</strong><span>(${item.tipus === 'sorozat' ? 'Sorozat' : 'Film'})</span>${linkHtml}`;
             li.appendChild(itemDetails);
+            
             const controls = document.createElement('div');
             controls.className = 'item-controls';
+            
             if (item.tipus === 'sorozat') {
                 const episodeControls = document.createElement('div');
                 episodeControls.className = 'episode-controls';
@@ -369,6 +533,7 @@
                 episodeControls.innerHTML = `<span>Epizódok: <strong>${item.watchedEpisodes}${episodeProgress}</strong></span><button onclick="changeEpisodeCount('${item.firestoreId}', -1)">-</button><button onclick="changeEpisodeCount('${item.firestoreId}', 1)">+</button>`;
                 controls.appendChild(episodeControls);
             }
+            
             if (item.statusz === 'nézendő') {
                 const button = document.createElement('button');
                 button.textContent = 'Megnéztem';
@@ -380,12 +545,15 @@
                 button.onclick = () => updateStatus(item.firestoreId, 'nézendő');
                 controls.appendChild(button);
             }
+            
             const deleteBtn = document.createElement('button');
             deleteBtn.textContent = 'Törlés 🗑️';
             deleteBtn.className = 'delete-button';
             deleteBtn.onclick = () => deleteItem(item.firestoreId);
             controls.appendChild(deleteBtn);
+            
             li.appendChild(controls);
+            
             if (item.statusz === 'nézendő') {
                 nezendoUl.appendChild(li);
             } else {
@@ -393,7 +561,53 @@
             }
         });
     }
-    // ... (A többi render függvény megmarad)
+
+    function renderGameLists() {
+        const nezendoUl = document.getElementById('game-nezendo-lista');
+        const megnezveUl = document.getElementById('game-megnezve-lista');
+        if (!nezendoUl || !megnezveUl) return;
+        nezendoUl.innerHTML = '';
+        megnezveUl.innerHTML = '';
+        
+        gameList.forEach(item => {
+            const li = document.createElement('li');
+            li.className = `tracker-item ${item.statusz === 'kijátszottam' ? 'watched' : ''}`;
+            
+            const itemDetails = document.createElement('div');
+            itemDetails.className = 'item-details';
+            itemDetails.innerHTML = `<strong>${item.cim}</strong><span>(${item.platform})</span>`;
+            li.appendChild(itemDetails);
+            
+            const controls = document.createElement('div');
+            controls.className = 'item-controls';
+            
+            if (item.statusz === 'játszandó') {
+                const button = document.createElement('button');
+                button.textContent = 'Kijátszottam';
+                button.onclick = () => updateGameStatus(item.firestoreId, 'kijátszottam');
+                controls.appendChild(button);
+            } else {
+                const button = document.createElement('button');
+                button.textContent = 'Mégse játszottam';
+                button.onclick = () => updateGameStatus(item.firestoreId, 'játszandó');
+                controls.appendChild(button);
+            }
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Törlés 🗑️';
+            deleteBtn.className = 'delete-button';
+            deleteBtn.onclick = () => deleteGameItem(item.firestoreId);
+            controls.appendChild(deleteBtn);
+            
+            li.appendChild(controls);
+            
+            if (item.statusz === 'játszandó') {
+                nezendoUl.appendChild(li);
+            } else {
+                megnezveUl.appendChild(li);
+            }
+        });
+    }
 
     // Alkalmazás indítása
     window.onload = () => {
