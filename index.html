@@ -557,12 +557,18 @@
         }
     }
 
-    // CÍM SZERKESZTÉSE FIREBASE-BEN
     window.saveNewTitle = async function(firestoreId) {
         const input = document.getElementById(`title-edit-${firestoreId}`);
         const newTitle = input ? input.value.trim() : null;
         
+        // Ellenőrizzük az azonosítót és az új címet
+        if (!firestoreId) { 
+            console.error("Hiba: Érvénytelen FireStore azonosító a mentéshez.");
+            return;
+        }
+
         if (!newTitle || newTitle === "") { 
+            // Ha üres a cím, csak visszaváltunk olvasási módba, de nem mentünk (megtartja a régit)
             toggleEditMode(firestoreId); 
             return; 
         }
@@ -572,7 +578,7 @@
             await updateDoc(doc(getMediaCollectionRef(), firestoreId), {
                 cim: newTitle
             });
-            // Itt HAGYJUK, hogy az onSnapshot újrarenderelje a listát, ami kikapcsolja az edit módot is.
+            // Az onSnapshot listener automatikusan újrarenderel, ami kikapcsolja az edit módot is.
         } catch (e) {
             console.error("Hiba a cím frissítésekor: ", e);
             // Hiba esetén is visszaváltunk a kijelző módba
@@ -590,7 +596,6 @@
         
         // Ellenőrzés a hiányzó elemekre
         if (!display || !input || !editBtn || !saveBtn || !cancelBtn) {
-            console.error(`Missing elements for ${firestoreId}.`);
             return; 
         } 
 
@@ -602,6 +607,9 @@
             display.style.display = 'none';
             input.style.display = 'inline-block';
             
+            // FIX: Töltse be az aktuális címet az input mezőbe
+            input.value = display.textContent.trim(); 
+            
             editBtn.style.display = 'none';
             saveBtn.style.display = 'inline-block';
             cancelBtn.style.display = 'inline-block';
@@ -609,7 +617,7 @@
             // Fókusz az input mezőre és a kurzor beállítása a szöveg végére
             input.focus();
             const len = input.value.length;
-            input.setSelectionRange(len, len); // Kurzor a szöveg végén lesz (NEM jelöl ki!)
+            input.setSelectionRange(len, len); // Kurzor a szöveg végén lesz
         } else {
             // Szerkesztési mód kikapcsolása (Mégse/Mentés után)
             display.style.display = 'inline-block';
@@ -619,11 +627,10 @@
             saveBtn.style.display = 'none';
             cancelBtn.style.display = 'none';
             
-            // Mégse esetén visszaállítjuk az eredeti címet az input mezőben
+            // Mégse esetén visszaállítjuk az eredeti címet az input mezőben (bár az onSnapshot megteszi)
             const currentItem = trackerList.find(item => item.firestoreId === firestoreId);
             if (currentItem) {
                 input.value = currentItem.cim;
-                display.textContent = currentItem.cim; 
             }
         }
     }
@@ -798,6 +805,7 @@
             saveButton.style.display = 'none'; 
             saveButton.title = 'Cím mentése';
             saveButton.setAttribute('data-action', 'save-media'); 
+            saveButton.setAttribute('data-id', item.firestoreId); // <-- JAVÍTVA: Hozzáadva a data-id
 
             // 5. Mégse gomb (Cancel)
             const cancelButton = document.createElement('button');
@@ -917,23 +925,21 @@
     // === ESZEMÉNY DELEGÁCIÓ A DINAMIKUS GOMBOKHOZ ===
     document.addEventListener('click', function(event) {
         const target = event.target;
+        const firestoreId = target.getAttribute('data-id');
         
         // 1. Cím szerkesztésének aktiválása
         if (target.matches('[data-action="edit-media"]')) {
-            const firestoreId = target.getAttribute('data-id');
             toggleEditMode(firestoreId);
         }
         
-        // 2. Mentés gomb - Delegált akció használata
+        // 2. Mentés gomb - Delegált akció használata (most már van data-id!)
         if (target.matches('[data-action="save-media"]')) {
-             const firestoreId = target.getAttribute('data-id');
-             saveNewTitle(firestoreId);
+             if (firestoreId) saveNewTitle(firestoreId);
         }
 
         // 3. Mégse gomb - Delegált akció használata
         if (target.matches('[data-action="cancel-media"]')) {
-             const firestoreId = target.getAttribute('data-id');
-             toggleEditMode(firestoreId);
+             if (firestoreId) toggleEditMode(firestoreId);
         }
     });
 
