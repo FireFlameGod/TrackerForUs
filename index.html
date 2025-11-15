@@ -129,7 +129,19 @@
         button:hover { opacity: 0.9; transform: translateY(-1px); }
         
         .logout-btn { background-color: #555; color: #f0f0f0; margin-left: 10px; }
-        .episode-controls { display: flex; align-items: center; gap: 10px; margin-right: 15px; }
+        
+        /* EPIZÓD VEZÉRLÉS STÍLUS */
+        .episode-controls { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            margin-right: 15px; 
+            flex-wrap: wrap;
+        }
+        .episode-controls span {
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
         .episode-controls button { background-color: #555; color: #f0f0f0; padding: 5px 10px; box-shadow: none; }
         
         /* ÚJ, KISEBB GOMB STÍLUSOK A CÍMHEZ ÉS TÉMASZÍNEZÉS */
@@ -926,11 +938,21 @@
             if (item.tipus === 'sorozat') {
                 const episodeControls = document.createElement('div');
                 episodeControls.className = 'episode-controls';
+                
                 const watched = item.watchedEpisodes !== null && item.watchedEpisodes !== undefined ? item.watchedEpisodes : 0;
                 const max = item.maxEpisodes !== null && item.maxEpisodes !== undefined ? item.maxEpisodes : '?';
                 const episodeProgress = (max !== '?') ? ` / ${max}` : '';
                 
-                episodeControls.innerHTML = `<span>Epizódok: <strong>${watched}${episodeProgress}</strong></span><button onclick="changeEpisodeCount('${item.firestoreId}', -1)">-</button><button onclick="changeEpisodeCount('${item.firestoreId}', 1)">+</button>`;
+                // ÚJ: Következő epizód számítása
+                const nextEpisode = watched + 1;
+                
+                // Az új HTML tartalom a "Következő epizód" mezővel
+                episodeControls.innerHTML = `
+                    <span style="font-weight: 600;">Következő epizód: <span style="color: var(--theme-color); font-size: 1.1em;">${nextEpisode}</span></span>
+                    <span style="margin-left: 10px;">Epizódok: <strong>${watched}${episodeProgress}</strong></span>
+                    <button onclick="changeEpisodeCount('${item.firestoreId}', -1)">-</button>
+                    <button onclick="changeEpisodeCount('${item.firestoreId}', 1)">+</button>
+                `;
                 controls.appendChild(episodeControls);
             }
             
