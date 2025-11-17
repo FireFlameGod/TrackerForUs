@@ -1058,7 +1058,6 @@
                 const backButton = document.createElement('button');
                 backButton.textContent = '⬅️ Back'; 
                 backButton.id = `back-btn-${item.firestoreId}`;
-                // Már csak a theme-color alapú stílust használja:
                 backButton.className = 'title-action-btn'; 
                 backButton.title = 'Visszaküldés az eredeti listára';
                 backButton.onclick = () => sendBackFromJoint(item.firestoreId);
@@ -1132,7 +1131,7 @@
     function renderGameLists() {
         const nezendoUl = document.getElementById('game-nezendo-lista');
         const megnezveUl = document.getElementById('game-megnezve-lista');
-        if (!nezendoUl || !megmezveUl) return;
+        if (!nezendoUl || !megnezveUl) return; // <-- JAVÍTVA: megmezveUl helyett megnezveUl
         nezendoUl.innerHTML = '';
         megnezveUl.innerHTML = '';
         
