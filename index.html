@@ -135,16 +135,20 @@
             flex-wrap: wrap; 
         }
         .tracker-item.watched { border-left: 5px solid #28a745; opacity: 0.8; }
+        
+        /* MÓDOSÍTOTT INPUT STÍLUS */
         input:not([type="color"]), select { 
             padding: 10px; 
             border: 1px solid #555; 
             border-radius: 6px; 
             background-color: #3e3e3e; 
             color: #f0f0f0; 
+            /* JAVÍTÁS: Ez biztosítja, hogy a padding ne növelje a 100% szélességű elemek méretét. */
+            box-sizing: border-box; 
         }
         
-        /* ÚJ: Kereső mező stílusa */
-        #search-input {
+        /* ÚJ: Kereső mező stílusa (Most már mindkét kereső mezőre vonatkozóan) */
+        #search-input, #game-search-input { 
             width: 100%; 
             margin-bottom: 20px;
             padding: 12px;
@@ -737,8 +741,6 @@
         
         try {
             await updateDoc(doc(getMediaCollectionRef(), firestoreId), updateData);
-            // *** MÓDOSÍTÁS: Eltávolítottam a toggleEditMode hívást innen! ***
-            // Az onSnapshot listener automatikusan frissíti a listát, ami visszaállítja a normál nézetet.
         } catch (e) {
             console.error("Hiba az elem frissítésekor: ", e);
         }
@@ -1247,12 +1249,10 @@
         
         if (target.matches('[data-action="save-media"]')) {
              if (firestoreId) saveMediaItem(firestoreId);
-             // *** MEGJEGYZÉS: saveMediaItem most már csak adatot ment, a renderelés onSnapshot által történik. ***
         }
 
         if (target.matches('[data-action="cancel-media"]')) {
              if (firestoreId) toggleEditMode(firestoreId);
-             // A Cancel gomb továbbra is azonnal visszaállítja a normál nézetet, mivel nem történik adatbázis-művelet.
         }
     });
 
