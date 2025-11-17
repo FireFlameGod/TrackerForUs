@@ -960,6 +960,11 @@
             );
         }
 
+        // JAVÍTÁS: 3. Rendezés ABC sorrendbe cím alapján
+        // 'hu' locale-lel a magyar ábécé szerinti sorrendhez
+        filteredList.sort((a, b) => a.cim.localeCompare(b.cim, 'hu', { sensitivity: 'base' }));
+
+
         const isJointCategory = currentCategory === 'joint';
 
         filteredList.forEach(item => {
@@ -1183,12 +1188,16 @@
 
         let filteredList = gameList;
         
-        // Szűrés a keresési feltételre
+        // 1. Szűrés a keresési feltételre
         if (searchTerm.length > 0) {
             filteredList = filteredList.filter(item => 
                 item.cim.toLowerCase().includes(searchTerm)
             );
         }
+
+        // JAVÍTÁS: 2. Rendezés ABC sorrendbe cím alapján
+        filteredList.sort((a, b) => a.cim.localeCompare(b.cim, 'hu', { sensitivity: 'base' }));
+
 
         filteredList.forEach(item => {
             const li = document.createElement('li');
