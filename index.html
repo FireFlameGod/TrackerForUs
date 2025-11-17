@@ -8,7 +8,6 @@
   body { font-family: Arial, sans-serif; margin: 20px; }
   #loading-screen { display: flex; justify-content: center; align-items: center; height: 100vh; }
   #app-content-container { display: none; }
-  /* További stílusok... */
 </style>
 </head>
 <body>
@@ -18,7 +17,7 @@
   <h2>Kérlek, add meg a titkos kulcsot</h2>
   <input type="password" id="access-key-input" placeholder="Kulcs" />
   <button onclick="checkAccessKey()">Bejelentkezés</button>
-  <div id="login-error" style="color:red;"></div>
+  <div id="login-error" style="color:red; margin-top:10px"></div>
 </div>
 
 <!-- Fő tartalom -->
@@ -26,11 +25,12 @@
   <button onclick="logout()">Kijelentkezés</button>
   <h3>Megosztott azonosító: <strong id="shared-id-info"></strong></h3>
   <h3>Saját azonosítód: <strong id="user-id-info"></strong></h3>
+
   <button onclick="toggleAdvancedInfo()">Részletek <span id="toggle-icon">▼</span></button>
   <div id="advanced-info-content" style="display:none;">
     <p>Ez az alkalmazás segít a média elemek nyilvántartásában.</p>
   </div>
-  
+
   <h2>Új elem hozzáadása</h2>
   <input type="text" id="cim-input" placeholder="Cím" />
   <select id="tipus-select">
@@ -40,7 +40,7 @@
   <input type="number" id="max-epizod-input" placeholder="Max epizód" />
   <input type="text" id="link-input" placeholder="Link" />
   <button onclick="addNewItem()">Hozzáadás</button>
-  
+
   <h2>Lista</h2>
   <div id="list-container"></div>
 </div>
@@ -49,197 +49,217 @@
 <div id="loading-screen" style="display:flex;">Betöltés...</div>
 
 <script type="module">
-  // A meglévő firebase és egyéb kódod, változatlan
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-  import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAKEKZzgKSTFQ3_K6Yhm7aPvTX5plMzXYg",
-    authDomain: "tracker-fbe21.firebaseapp.com",
-    projectId: "tracker-fbe21",
-    storageBucket: "tracker-fbe21.appspot.com",
-    messagingSenderId: "402979419538",
-    appId: "1:402979419538:web:ff7924c73c306ff8527d4b"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyAKEKZzgKSTFQ3_K6Yhm7aPvTX5plMzXYg",
+  authDomain: "tracker-fbe21.firebaseapp.com",
+  projectId: "tracker-fbe21",
+  storageBucket: "tracker-fbe21.appspot.com",
+  messagingSenderId: "402979419538",
+  appId: "1:402979419538:web:ff7924c73c306ff8527d4b"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app); 
-  
-  const ENCODED_ACCESS_KEY = "MDAxMw=="; 
-  const ACCESS_KEY_LOCAL_STORAGE = "trackerAccessGranted";
-  const SHARED_UID = "SHARED_FRIENDS_GROUP"; 
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app); 
 
-  let trackerList = [];
-  let gameList = [];    
+const ENCODED_ACCESS_KEY = "MDAxMw=="; 
+const ACCESS_KEY_LOCAL_STORAGE = "trackerAccessGranted";
+const SHARED_UID = "SHARED_FRIENDS_GROUP";
 
-  // ... egyéb változók és funkciók, az eredeti szerint ...
+let trackerList = [];
+let gameList = [];
 
-  window.checkAccessKey = function() {
-    const inputKey = document.getElementById('access-key-input').value.trim();
-    const errorDiv = document.getElementById('login-error');
-    const SECRET_ACCESS_KEY = atob(ENCODED_ACCESS_KEY);
-    if (inputKey === SECRET_ACCESS_KEY) {
-      localStorage.setItem(ACCESS_KEY_LOCAL_STORAGE, 'true');
-      errorDiv.textContent = '';
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('main-app-content').style.display = 'block';
-      initAuthAndApp();
-    } else {
-      errorDiv.textContent = 'Hibás titkos kulcs!';
-      localStorage.removeItem(ACCESS_KEY_LOCAL_STORAGE);
-    }
+const loadingScreen = document.getElementById('loading-screen');
+const appContent = document.getElementById('main-app-content');
+
+function checkInitialAccess() {
+  if (localStorage.getItem(ACCESS_KEY_LOCAL_STORAGE) === 'true') {
+    document.getElementById('login-screen').style.display = 'none';
+    appContent.style.display = 'block';
+    initAuthAndApp();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    appContent.style.display = 'none';
   }
+}
 
-  // ... többi eredeti kód ...
+window.checkAccessKey = function() {
+  const inputKey = document.getElementById('access-key-input').value.trim();
+  const errorDiv = document.getElementById('login-error');
+  const SECRET_ACCESS_KEY = atob(ENCODED_ACCESS_KEY);
+  if (inputKey === SECRET_ACCESS_KEY) {
+    localStorage.setItem(ACCESS_KEY_LOCAL_STORAGE, 'true');
+    errorDiv.textContent = '';
+    document.getElementById('login-screen').style.display = 'none';
+    appContent.style.display = 'block';
+    initAuthAndApp();
+  } else {
+    errorDiv.textContent = 'Hibás titkos kulcs!';
+    localStorage.removeItem(ACCESS_KEY_LOCAL_STORAGE);
+  }
+};
 
-  // Itt jön a módosítás: a listázó funkciókban, ahol a lista elemek vannak
-  // vagy a renderLists() és a többi, ott hozzáadjuk a szerkesztés lehetőségét
+async function initAuthAndApp() {
+  // Autentikáció
+  await signInAnonymously(auth);
+  // Adatok betöltése
+  loadData();
+}
 
-  // Például a renderLists() funkcióban így módosítjuk:
-  function renderLists() {
-    const container = document.getElementById('list-container');
-    container.innerHTML = '';
+function loadData() {
+  // Például a tracker lista
+  const trackerRef = collection(db, "tracker");
+  onSnapshot(trackerRef, (snapshot) => {
+    trackerList = snapshot.docs.map(doc => ({ ...doc.data(), firestoreId: doc.id }));
+    renderLists();
+  });
+}
 
-    trackerList.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'list-item';
+function renderLists() {
+  const container = document.getElementById('list-container');
+  container.innerHTML = '';
 
-      // Cím megjelenítése
-      const titleSpan = document.createElement('span');
-      titleSpan.id = `title-display-${item.firestoreId}`;
-      titleSpan.textContent = item.cim;
+  trackerList.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
 
-      // Szerkesztés gomb
-      const editBtn = document.createElement('button');
-      editBtn.textContent = 'Szerkesztés';
-      editBtn.onclick = () => toggleEditMode(item.firestoreId);
-      editBtn.id = `edit-btn-${item.firestoreId}`;
+    // Cím
+    const titleSpan = document.createElement('span');
+    titleSpan.id = `title-display-${item.firestoreId}`;
+    titleSpan.textContent = item.cim;
 
-      // Mentés gomb
-      const saveBtn = document.createElement('button');
-      saveBtn.textContent = 'Mentés';
-      saveBtn.style.display = 'none';
-      saveBtn.onclick = () => saveItemDetails(item.firestoreId);
-      saveBtn.id = `save-btn-${item.firestoreId}`;
+    // Szerkesztés gomb
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Szerkesztés';
+    editBtn.onclick = () => toggleEditMode(item.firestoreId);
+    editBtn.id = `edit-btn-${item.firestoreId}`;
 
-      // Mégse gomb
-      const cancelBtn = document.createElement('button');
-      cancelBtn.textContent = 'Mégse';
-      cancelBtn.style.display = 'none';
-      cancelBtn.onclick = () => toggleEditMode(item.firestoreId);
-      cancelBtn.id = `cancel-btn-${item.firestoreId}`;
+    // Mentés gomb
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Mentés';
+    saveBtn.style.display = 'none';
+    saveBtn.onclick = () => saveItemDetails(item.firestoreId);
+    saveBtn.id = `save-btn-${item.firestoreId}`;
 
-      // Link szerkesztő mező
-      const linkInput = document.createElement('input');
-      linkInput.type = 'url';
-      linkInput.id = `link-edit-${item.firestoreId}`;
-      linkInput.style.display = 'none';
+    // Mégse gomb
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Mégse';
+    cancelBtn.style.display = 'none';
+    cancelBtn.onclick = () => toggleEditMode(item.firestoreId);
+    cancelBtn.id = `cancel-btn-${item.firestoreId}`;
 
-      // Epizód szerkesztő mező
-      const episodeInput = document.createElement('input');
-      episodeInput.type = 'number';
-      episodeInput.id = `episode-edit-${item.firestoreId}`;
-      episodeInput.style.display = 'none';
+    // Link szerkesztő mező
+    const linkInput = document.createElement('input');
+    linkInput.type = 'url';
+    linkInput.id = `link-edit-${item.firestoreId}`;
+    linkInput.style.display = 'none';
 
-      // Az elem összerakása
-      div.appendChild(titleSpan);
-      div.appendChild(editBtn);
-      div.appendChild(saveBtn);
-      div.appendChild(cancelBtn);
-      div.appendChild(document.createTextNode(' Link: '));
-      div.appendChild(linkInput);
-      div.appendChild(document.createTextNode(' Epizódok: '));
-      div.appendChild(episodeInput);
+    // Epizód szerkesztő mező
+    const episodeInput = document.createElement('input');
+    episodeInput.type = 'number';
+    episodeInput.id = `episode-edit-${item.firestoreId}`;
+    episodeInput.style.display = 'none';
 
-      // További mezők, például akciók, státusz, stb. hozzáadása
+    // Az elem összerakása
+    div.appendChild(titleSpan);
+    div.appendChild(editBtn);
+    div.appendChild(saveBtn);
+    div.appendChild(cancelBtn);
+    div.appendChild(document.createTextNode(' Link: '));
+    div.appendChild(linkInput);
+    div.appendChild(document.createTextNode(' Epizódok: '));
+    div.appendChild(episodeInput);
 
-      container.appendChild(div);
+    container.appendChild(div);
+  });
+}
+
+function toggleEditMode(firestoreId) {
+  const display = document.getElementById(`title-display-${firestoreId}`);
+  const currentItem = trackerList.find(i => i.firestoreId === firestoreId);
+  const linkInput = document.getElementById(`link-edit-${firestoreId}`);
+  const episodeInput = document.getElementById(`episode-edit-${firestoreId}`);
+  const editBtn = document.getElementById(`edit-btn-${firestoreId}`);
+  const saveBtn = document.getElementById(`save-btn-${firestoreId}`);
+  const cancelBtn = document.getElementById(`cancel-btn-${firestoreId}`);
+
+  if (display.style.display !== 'none') {
+    // Szerkesztés indítása
+    display.style.display = 'none';
+
+    // Cím szerkeszthető mező
+    if (!document.getElementById(`title-edit-${firestoreId}`)) {
+      const inputTitle = document.createElement('input');
+      inputTitle.type = 'text';
+      inputTitle.id = `title-edit-${firestoreId}`;
+      inputTitle.value = display.textContent;
+      display.parentNode.insertBefore(inputTitle, display.nextSibling);
+    } else {
+      document.getElementById(`title-edit-${firestoreId}`).style.display = 'inline';
+      document.getElementById(`title-edit-${firestoreId}`).value = display.textContent;
+    }
+
+    // Link
+    linkInput.style.display = 'inline';
+    if (currentItem.link) linkInput.value = currentItem.link; else linkInput.value = '';
+
+    // Epizód
+    episodeInput.style.display = 'inline';
+    episodeInput.value = currentItem.watchedEpisodes || '';
+
+    // Gombok
+    editBtn.style.display = 'none';
+    saveBtn.style.display = 'inline';
+    cancelBtn.style.display = 'inline';
+
+  } else {
+    // Szerkesztés befejezése
+    display.style.display = 'inline';
+
+    document.getElementById(`title-edit-${firestoreId}`).style.display = 'none';
+    linkInput.style.display = 'none';
+    episodeInput.style.display = 'none';
+
+    // Gombok
+    editBtn.style.display = 'inline';
+    saveBtn.style.display = 'none';
+    cancelBtn.style.display = 'none';
+  }
+}
+
+async function saveItemDetails(firestoreId) {
+  const titleInput = document.getElementById(`title-edit-${firestoreId}`);
+  const linkInput = document.getElementById(`link-edit-${firestoreId}`);
+  const episodeInput = document.getElementById(`episode-edit-${firestoreId}`);
+  const titleDisplay = document.getElementById(`title-display-${firestoreId}`);
+
+  const newTitle = titleInput.value.trim();
+  const newLink = linkInput.value.trim();
+  const newWatchedEpisodes = parseInt(episodeInput.value);
+
+  try {
+    await updateDoc(doc(getMediaCollectionRef(), firestoreId), {
+      cim: newTitle,
+      link: newLink || null,
+      watchedEpisodes: isNaN(newWatchedEpisodes) ? 0 : newWatchedEpisodes
     });
+  } catch (e) {
+    console.error("Hiba a mentéskor:", e);
   }
+  // Frissítjük a megjelenítést
+  document.getElementById(`title-display-${firestoreId}`).textContent = newTitle;
+  toggleEditMode(firestoreId);
+}
 
-  function toggleEditMode(firestoreId) {
-    const display = document.getElementById(`title-display-${firestoreId}`);
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.id = `title-edit-${firestoreId}`;
+// A többi kód változatlan marad...
+// ... (itt folytatódik az eredeti kód többi része) ...
 
-    const linkInput = document.getElementById(`link-edit-${firestoreId}`);
-    const episodeInput = document.getElementById(`episode-edit-${firestoreId}`);
-
-    const editBtn = document.getElementById(`edit-btn-${firestoreId}`);
-    const saveBtn = document.getElementById(`save-btn-${firestoreId}`);
-    const cancelBtn = document.getElementById(`cancel-btn-${firestoreId}`);
-
-    // Itt a szerkesztés aktiválása
-    if (display.style.display !== 'none') {
-      display.style.display = 'none';
-
-      // Készítsünk input mezőket, ha nincsenek
-      if (!document.getElementById(`title-edit-${firestoreId}`)) {
-        const inputTitle = document.createElement('input');
-        inputTitle.type = 'text';
-        inputTitle.id = `title-edit-${firestoreId}`;
-        inputTitle.value = display.textContent;
-        display.parentNode.insertBefore(inputTitle, display.nextSibling);
-      } else {
-        document.getElementById(`title-edit-${firestoreId}`).style.display = 'inline';
-        document.getElementById(`title-edit-${firestoreId}`).value = display.textContent;
-      }
-
-      linkInput.style.display = 'inline';
-      if (!linkInput.value) linkInput.value = '';
-
-      episodeInput.style.display = 'inline';
-      // Töltsük be az aktuális értéket
-      const currentItem = trackerList.find(i => i.firestoreId === firestoreId);
-      if (currentItem) {
-        episodeInput.value = currentItem.watchedEpisodes !== null ? currentItem.watchedEpisodes : '';
-      }
-
-      // Gombok
-      editBtn.style.display = 'none';
-      saveBtn.style.display = 'inline';
-      cancelBtn.style.display = 'inline';
-
-    } else {
-      // Kikapcsolás
-      display.style.display = 'inline';
-
-      document.getElementById(`title-edit-${firestoreId}`).style.display = 'none';
-      linkInput.style.display = 'none';
-      episodeInput.style.display = 'none';
-
-      // Gombok
-      editBtn.style.display = 'inline';
-      saveBtn.style.display = 'none';
-      cancelBtn.style.display = 'none';
-    }
-  }
-
-  async function saveItemDetails(firestoreId) {
-    const titleElem = document.getElementById(`title-display-${firestoreId}`);
-    const titleInput = document.getElementById(`title-edit-${firestoreId}`);
-    const linkInput = document.getElementById(`link-edit-${firestoreId}`);
-    const episodeInput = document.getElementById(`episode-edit-${firestoreId}`);
-
-    const newTitle = titleInput.value.trim();
-    const newLink = linkInput.value.trim();
-    const newWatchedEpisodes = parseInt(episodeInput.value);
-
-    try {
-      await updateDoc(doc(getMediaCollectionRef(), firestoreId), {
-        cim: newTitle,
-        link: newLink || null,
-        watchedEpisodes: isNaN(newWatchedEpisodes) ? 0 : newWatchedEpisodes
-      });
-    } catch (e) {
-      console.error("Hiba a mentéskor:", e);
-    }
-    // Visszaállítás szerkesztett állapotra
-    toggleEditMode(firestoreId);
-  }
+// Kezdő hívás
+checkInitialAccess();
 
 </script>
 </body>
