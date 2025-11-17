@@ -161,11 +161,7 @@
         .save-button { background-color: #28a745; color: white; } 
         .cancel-button { background-color: #6c757d; color: white; } 
         
-        /* ÚJ: Back gomb stílusa (a Send gomb a default theme-color-t használja) */
-        .back-button {
-            background-color: #007bff; /* Eltérő szín a Back gombhoz */
-            color: white;
-        }
+        /* A Send és Back gombok most már a default theme-color-t használják a .title-action-btn-en keresztül */
 
         /* Törlés gomb stílusa, amihez a többinek igazodnia kell */
         .delete-button-matched { 
@@ -607,12 +603,12 @@
         }
     }
     
-    // ÚJ: Elem áthelyezése a "Közös nézés" kategóriába
+    // Elem áthelyezése a "Közös nézés" kategóriába
     window.sendToJoint = async function(firestoreId) {
         const item = trackerList.find(i => i.firestoreId === firestoreId);
         if (!item) return;
         
-        if (item.category === 'joint') return; // Ne küldjük át, ha már ott van
+        if (item.category === 'joint') return; 
 
         try {
             await updateDoc(doc(getMediaCollectionRef(), firestoreId), {
@@ -625,7 +621,7 @@
         }
     }
 
-    // ÚJ: Elem visszaküldése az eredeti kategóriába
+    // Elem visszaküldése az eredeti kategóriába
     window.sendBackFromJoint = async function(firestoreId) {
         const item = trackerList.find(i => i.firestoreId === firestoreId);
         if (!item || item.category !== 'joint' || !item.previousCategory) return;
@@ -734,7 +730,7 @@
         
         // Gombok
         const sendBtn = document.getElementById(`send-btn-${firestoreId}`);
-        const backBtn = document.getElementById(`back-btn-${firestoreId}`); // Új: Back gomb
+        const backBtn = document.getElementById(`back-btn-${firestoreId}`); 
         const editBtn = document.getElementById(`edit-btn-${firestoreId}`);
         const saveBtn = document.getElementById(`save-btn-${firestoreId}`);
         const cancelBtn = document.getElementById(`cancel-btn-${firestoreId}`);
@@ -794,8 +790,8 @@
             if (notesTextarea) notesTextarea.style.display = 'none';
             
             // Visszamutatjuk a SEND/BACK gombot, ha a DOM-ban van
-            if (sendBtn) sendBtn.style.display = 'block'; 
-            if (backBtn) backBtn.style.display = 'block'; 
+            if (sendBtn && currentItem.category !== 'joint') sendBtn.style.display = 'block'; 
+            if (backBtn && currentItem.category === 'joint' && currentItem.previousCategory) backBtn.style.display = 'block'; 
 
             editBtn.style.display = 'block'; // Mutat Edit
             saveBtn.style.display = 'none'; // Rejtett Save
@@ -1062,7 +1058,8 @@
                 const backButton = document.createElement('button');
                 backButton.textContent = '⬅️ Back'; 
                 backButton.id = `back-btn-${item.firestoreId}`;
-                backButton.className = 'title-action-btn back-button'; // Külön stílus a Back-nek
+                // Már csak a theme-color alapú stílust használja:
+                backButton.className = 'title-action-btn'; 
                 backButton.title = 'Visszaküldés az eredeti listára';
                 backButton.onclick = () => sendBackFromJoint(item.firestoreId);
                 controls.appendChild(backButton);
@@ -1135,7 +1132,7 @@
     function renderGameLists() {
         const nezendoUl = document.getElementById('game-nezendo-lista');
         const megnezveUl = document.getElementById('game-megnezve-lista');
-        if (!nezendoUl || !megnezveUl) return;
+        if (!nezendoUl || !megmezveUl) return;
         nezendoUl.innerHTML = '';
         megnezveUl.innerHTML = '';
         
