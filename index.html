@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tracker</title>
-    <!-- Beágyazott CSS stílusok -->
     <style>
         :root {
             --theme-color: #ff8c00; 
@@ -175,8 +174,8 @@
         .item-details a { color: var(--theme-color); text-decoration: none; font-size: 0.9em; margin-top: 3px; font-weight: 500; }
         .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         
-        /* Címszerkesztő input stílusa */
-        .title-edit-input, .link-edit-input, .max-episode-edit-input { /* <-- MÓDOSÍTVA */
+        /* Címszerkesztő input stílusa, kiegészítve a link és max epizód inputokkal */
+        .title-edit-input, .link-edit-input, .max-episode-edit-input { 
             padding: 5px; 
             font-size: 1em; 
             border-radius: 4px; 
@@ -260,7 +259,6 @@
     </style>
 </head>
 <body>
-    <!-- 1. BELÉPTETŐ KÉPERNYŐ -->
     <div id="login-screen">
         <div class="login-box">
             <h2>🔐 Privát Tracker Hozzáférés</h2>
@@ -271,7 +269,6 @@
         </div>
     </div>
     
-    <!-- 2. FŐ TARTALOM (Alapértelmezésben rejtve) -->
     <div id="main-app-content" class="container" style="display: none;">
         
         <div class="header-controls">
@@ -279,15 +276,12 @@
             <button class="logout-btn" onclick="logout()">Kijelentkezés 🚪</button>
         </div>
         
-        <!-- Loader a tartalom betöltése alatt -->
         <div id="loading-screen" class="loader">
             <h2 style="color: #666;">Betöltés és szinkronizálás...</h2>
         </div>
 
-        <!-- APP TARTALOM (A hitelesítés után látható) -->
         <div id="app-content-container" style="display: none;">
             
-            <!-- HALADÓ ADATOK LENYITHATÓ SZEKCIÓ -->
             <button id="advanced-info-toggle" onclick="toggleAdvancedInfo()">
                 <span>Haladó adatok (hibakeresés) ⚙️</span>
                 <span id="toggle-icon">▼</span>
@@ -299,22 +293,18 @@
             
             <hr style="border-top: 1px solid #333; margin: 15px 0;">
 
-            <!-- Színválasztó -->
             <div class="color-picker-area">
                 <span>Kiemelő szín:</span>
                 <input type="color" id="color-picker" value="#ff8c00" onchange="changeThemeColor(this.value)">
             </div>
 
-            <!-- FŐ TAB VÁLTÓ GOMBOK -->
             <div class="tabs main-tabs">
                 <button onclick="showMainTab('media')" class="active-main-tab" id="media-main-tab">🎬 Filmek & Sorozatok</button>
                 <button onclick="showMainTab('game')" id="game-main-tab">🎮 Játékok</button>
             </div>
             
-            <!-- 1. MÉDIA TARTALOM (Filmek & Sorozatok) -->
             <div id="media-content">
                 
-                <!-- AL-TABOK - Csak a média fül alatt láthatóak -->
                 <div id="media-sub-tabs" class="tabs sub-tabs" style="display: flex;">
                     <button onclick="showSubTab('joint')" class="active-sub-tab" id="joint-sub-tab">🧑‍🤝‍🧑 Közös nézés</button>
                     <button onclick="showSubTab('cdrama')" id="cdrama-sub-tab">🇨🇳 C-Drama</button>
@@ -332,7 +322,6 @@
                         <option value="film">Film</option>
                         <option value="sorozat">Sorozat</option>
                     </select>
-                    <!-- Ezt a mezőt a JS rejti/mutatja -->
                     <input type="number" id="max-epizod-input" placeholder="Max epizód" style="display: none;">
                     <input type="url" id="link-input" placeholder="Link (pl.: IMDb)">
                     <button onclick="addNewItem()">Hozzáadás</button>
@@ -345,7 +334,6 @@
                 <ul id="megnezve-lista" class="tracker-list"></ul>
             </div>
 
-            <!-- 2. JÁTÉK TARTALOM -->
             <div id="game-tracker-content" style="display: none;">
                 <h2>🎮 Játékok Listája</h2>
                 
@@ -615,7 +603,7 @@
         }
     }
     
-    // === CÍM, LINK ÉS MAX EPIZÓD SZERKESZTÉSI LOGIKA ===
+    // === CÍM, LINK ÉS MAX EPIZÓD SZERKESZTÉSI LOGIKA (saveNewTitle helyett) ===
 
     window.saveMediaItem = async function(firestoreId) {
         const titleInput = document.getElementById(`title-edit-${firestoreId}`);
@@ -624,12 +612,12 @@
         
         const newTitle = titleInput ? titleInput.value.trim() : null;
         const newLink = linkInput ? linkInput.value.trim() : null;
-        const newMaxEpisodes = maxEpInput && maxEpInput.style.display !== 'none' ? parseInt(maxEpInput.value) : null;
+        // Csak akkor konvertáljuk számmá, ha létezik az input mező és látható.
+        const newMaxEpisodes = maxEpInput && maxEpInput.style.display !== 'none' ? parseInt(maxEpInput.value) : null; 
 
         if (!firestoreId || !titleInput) { return; }
 
         if (!newTitle || newTitle === "") { 
-            // Ha üres a cím, visszaváltunk olvasási módba
             toggleEditMode(firestoreId); 
             return; 
         }
@@ -639,19 +627,18 @@
             link: newLink || null, // Üres string null-ra vált
         };
 
-        if (maxEpInput && maxEpInput.style.display !== 'none') {
-             // Csak akkor mentjük, ha látható (azaz sorozat)
+        const currentItem = trackerList.find(item => item.firestoreId === firestoreId);
+
+        if (currentItem && currentItem.tipus === 'sorozat') {
+             // Sorozat esetén mentjük a max epizód számot is
              updateData.maxEpisodes = newMaxEpisodes && newMaxEpisodes > 0 ? newMaxEpisodes : null;
              
              // Frissítjük a státuszt is, ha a max epizód változik
-             const currentItem = trackerList.find(item => item.firestoreId === firestoreId);
-             if (currentItem && currentItem.tipus === 'sorozat') {
-                if (newMaxEpisodes && newMaxEpisodes > 0 && currentItem.watchedEpisodes >= newMaxEpisodes) {
-                    updateData.statusz = 'megnézve';
-                } else if (currentItem.statusz === 'megnézve') {
-                    // Ha a max epizód csökken, és már nincs megnézve, visszaváltunk nézendőre
-                    updateData.statusz = 'nézendő';
-                }
+             if (updateData.maxEpisodes && currentItem.watchedEpisodes >= updateData.maxEpisodes) {
+                 updateData.statusz = 'megnézve';
+             } else if (currentItem.statusz === 'megnézve' && currentItem.watchedEpisodes < (updateData.maxEpisodes || 0)) {
+                 // Ha a státusz 'megnézve' volt, de a megnézett epizód kevesebb, mint az új max
+                 updateData.statusz = 'nézendő';
              }
         }
         
@@ -691,18 +678,20 @@
             titleDisplay.style.display = 'none';
             titleInput.style.display = 'inline-block';
             
-            linkDisplay.style.display = 'none';
-            linkInput.style.display = 'inline-block';
+            // Link mezők
+            if (linkDisplay) linkDisplay.style.display = 'none'; // A link lehet <a> vagy <span>
+            if (linkInput) linkInput.style.display = 'inline-block';
             
-            // Link és Max Epizód adatainak betöltése
-            titleInput.value = currentItem.cim; 
-            linkInput.value = currentItem.link || ''; 
-
+            // Max Epizód mezők (csak sorozatnál)
             if (currentItem.tipus === 'sorozat') {
-                maxEpDisplay.style.display = 'none';
-                maxEpInput.style.display = 'inline-block';
-                maxEpInput.value = currentItem.maxEpisodes || ''; 
+                if (maxEpDisplay) maxEpDisplay.style.display = 'none';
+                if (maxEpInput) maxEpInput.style.display = 'inline-block';
             }
+            
+            // Adatok betöltése
+            titleInput.value = currentItem.cim; 
+            if (linkInput) linkInput.value = currentItem.link || ''; 
+            if (maxEpInput) maxEpInput.value = currentItem.maxEpisodes || ''; 
             
             editBtn.style.display = 'none';
             saveBtn.style.display = 'inline-block';
@@ -716,12 +705,14 @@
             titleDisplay.style.display = 'inline-block';
             titleInput.style.display = 'none';
             
-            linkDisplay.style.display = 'block'; // Block, mert hivatkozás
-            linkInput.style.display = 'none';
+            // Link mezők
+            if (linkDisplay) linkDisplay.style.display = 'block'; // Block, mert hivatkozás
+            if (linkInput) linkInput.style.display = 'none';
 
-            if (currentItem.tipus === 'sorozat' && maxEpDisplay) {
-                maxEpDisplay.style.display = 'inline'; 
-                maxEpInput.style.display = 'none';
+            // Max Epizód mezők (csak sorozatnál)
+            if (currentItem.tipus === 'sorozat') {
+                if (maxEpDisplay) maxEpDisplay.style.display = 'inline'; 
+                if (maxEpInput) maxEpInput.style.display = 'none';
             }
             
             editBtn.style.display = 'inline-block';
@@ -791,7 +782,7 @@
     }
 
     // === 6. JÁTÉK CRUD FUNKCIÓK ===
-    // (A játék logikán nem kellett változtatni)
+    // (A játék logikán nem kellett változtatni, mivel ott nem kértél megjegyzés mezőt)
 
     window.addNewGame = async function() {
         const cim = document.getElementById('game-cim-input').value.trim();
@@ -937,7 +928,7 @@
             titleInput.style.display = 'none'; 
             titleInput.onkeypress = (e) => { 
                 if(e.key === 'Enter') {
-                    saveMediaItem(item.firestoreId); // <-- MÓDOSÍTVA
+                    saveMediaItem(item.firestoreId); // <-- MÓDOSÍTVA (saveNewTitle -> saveMediaItem)
                 } 
             };
 
@@ -991,7 +982,7 @@
             saveButton.className = 'title-action-btn save-button';
             saveButton.style.display = 'none'; 
             saveButton.title = 'Adatok mentése';
-            saveButton.setAttribute('data-action', 'save-media'); // <-- MÓDOSÍTVA
+            saveButton.setAttribute('data-action', 'save-media'); 
             saveButton.setAttribute('data-id', item.firestoreId);
 
             const cancelButton = document.createElement('button');
@@ -1000,7 +991,7 @@
             cancelButton.className = 'title-action-btn cancel-button';
             cancelButton.style.display = 'none'; 
             cancelButton.title = 'Szerkesztés megszakítása';
-            cancelButton.setAttribute('data-action', 'cancel-media'); // <-- MÓDOSÍTVA
+            cancelButton.setAttribute('data-action', 'cancel-media'); 
             cancelButton.setAttribute('data-id', item.firestoreId);
 
             
@@ -1201,7 +1192,7 @@
         }
         
         if (target.matches('[data-action="save-media"]')) {
-             if (firestoreId) saveMediaItem(firestoreId); // <-- FÜGGVÉNY ÁTNEVEZVE
+             if (firestoreId) saveMediaItem(firestoreId); // <-- MÓDOSÍTVA (saveNewTitle -> saveMediaItem)
         }
 
         if (target.matches('[data-action="cancel-media"]')) {
@@ -1230,3 +1221,5 @@
     };
 
 </script>
+</body>
+</html>
