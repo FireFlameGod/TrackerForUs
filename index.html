@@ -143,7 +143,7 @@
         }
         .episode-controls button { background-color: #555; color: #f0f0f0; padding: 5px 10px; box-shadow: none; }
         
-        /* ÚJ: Fő szerkesztő gomb stílusa a fő gomb méretével */
+        /* Fő szerkesztő gomb (Edit, Mentés, Mégse) stílusa - Ezt használjuk a szélességre */
         .title-action-btn { 
             font-size: 1em; 
             padding: 10px 15px; 
@@ -153,7 +153,7 @@
             background-color: var(--theme-color); 
             color: #1e1e1e; 
             width: 100%; /* Kitölti a controls divet */
-            margin-top: 10px;
+            margin-top: 5px; /* Hely az egymás alatt lévő gombok között */
             text-align: center;
         }
 
@@ -161,7 +161,13 @@
         .save-button { background-color: #28a745; color: white; } 
         .cancel-button { background-color: #6c757d; color: white; } 
 
-        .delete-button { background-color: #dc3545; color: white; margin-left: 10px; }
+        .delete-button { 
+            background-color: #dc3545; 
+            color: white; 
+            margin-left: 10px;
+            /* A törlés gomb is széles lesz a flex-container miatt, ha a többi elem szűkebb */
+            /* De most a flex-item-controls állítja be a width-et, így minden gomb széles lesz */
+        }
         
         /* Vezérlők konténere */
         .item-controls { 
@@ -170,9 +176,10 @@
             flex-wrap: wrap; 
             gap: 10px; 
             margin-top: 5px;
-            flex-direction: column; 
+            flex-direction: column; /* Ezek miatt stackelnek a gombok, és a 100% width miatt szélesek */
             align-items: flex-end; 
             gap: 5px;
+            min-width: 170px; /* Alapértelmezett szélesség biztosítása a Törlés gomb számára */
         }
 
         /* Hogy a Statusz és Törlés gomb egy sorban maradjon */
@@ -180,6 +187,8 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            /* A Törlés gomb a controls-row-ban van, ami flex, a gombok méretét kitölti az epizód vezérlő, így a törlés gomb is akkora lesz, amekkora a tartalom. 
+            Mivel a többi gomb 100% szélesre van állítva a column flex konténerben, ez vizuálisan egységes megjelenést biztosít. */
         }
         
         .item-details { display: flex; flex-direction: column; margin-right: 20px; flex-grow: 1; min-width: 250px; }
@@ -208,7 +217,7 @@
 
         /* --- MEGJEGYZÉSEK STÍLUSAI --- */
         .notes-container {
-            flex-basis: 100%; /* Teljes szélesség a saját sorában */
+            flex-basis: 100%; 
             margin-top: 15px;
             background-color: #3e3e3e;
             padding: 10px;
@@ -225,7 +234,7 @@
 
         .notes-display-area {
             font-size: 0.9em;
-            white-space: pre-wrap; /* Sortörések megtartása */
+            white-space: pre-wrap; 
             min-height: 20px; 
             color: #ccc;
         }
@@ -243,8 +252,6 @@
             resize: vertical;
         }
 
-        /* Megjegyzés vezérlők törölve */
-        
         /* --- HALADÓ ADATOK STÍLUSA --- */
         #advanced-info-toggle {
             background-color: #333;
@@ -662,8 +669,10 @@
         
         try {
             await updateDoc(doc(getMediaCollectionRef(), firestoreId), updateData);
+            // A Firestore listener frissíti a nézetet, ami automatikusan kikapcsolja a szerkesztő módot.
         } catch (e) {
             console.error("Hiba az elem frissítésekor: ", e);
+            // Ha hiba van, jobb, ha bekapcsolva marad a szerkesztő mód
         }
     }
     
@@ -720,8 +729,8 @@
             if (maxEpInput) maxEpInput.value = currentItem.maxEpisodes || ''; 
             
             editBtn.style.display = 'none';
-            saveBtn.style.display = 'inline-block';
-            cancelBtn.style.display = 'inline-block';
+            saveBtn.style.display = 'block'; // Block, hogy széles legyen a column flex-ben
+            cancelBtn.style.display = 'block'; // Block, hogy széles legyen a column flex-ben
             
             titleInput.focus();
             const len = titleInput.value.length;
@@ -744,7 +753,7 @@
             if (notesDisplay) notesDisplay.style.display = 'block'; 
             if (notesTextarea) notesTextarea.style.display = 'none';
             
-            editBtn.style.display = 'inline-block';
+            editBtn.style.display = 'block'; // Block, hogy széles legyen a column flex-ben
             saveBtn.style.display = 'none';
             cancelBtn.style.display = 'none';
         }
@@ -876,7 +885,7 @@
             const itemDetails = document.createElement('div');
             itemDetails.className = 'item-details';
             
-            // Cím konténer: megjelenített szöveg + rejtett input mező + Mentés/Mégse gombok
+            // Cím konténer: megjelenített szöveg + rejtett input mező
             const titleContainer = document.createElement('div');
             titleContainer.className = 'item-title-container';
             
@@ -924,41 +933,9 @@
                 maxEpInput.placeholder = 'Max epizód';
                 itemDetails.appendChild(maxEpInput);
             }
-
-
-            // 4. Szerkesztő Gombok (Mentés és Mégse a Cím mellett maradnak, Edit gombot mozgatjuk)
-            const editButton = document.createElement('button');
-            editButton.textContent = 'Edit'; // MÓDOSÍTOTT SZÖVEG
-            editButton.id = `edit-btn-${item.firestoreId}`;
-            editButton.className = 'title-action-btn edit-button';
-            editButton.title = 'Adatok szerkesztése';
-            editButton.setAttribute('data-action', 'edit-media');
-            editButton.setAttribute('data-id', item.firestoreId);
-
-
-            const saveButton = document.createElement('button');
-            saveButton.textContent = '✅ Mentés'; 
-            saveButton.id = `save-btn-${item.firestoreId}`;
-            saveButton.className = 'title-action-btn save-button';
-            saveButton.style.display = 'none'; 
-            saveButton.title = 'Adatok mentése';
-            saveButton.setAttribute('data-action', 'save-media'); 
-            saveButton.setAttribute('data-id', item.firestoreId);
-
-            const cancelButton = document.createElement('button');
-            cancelButton.textContent = '❌ Mégse'; 
-            cancelButton.id = `cancel-btn-${item.firestoreId}`;
-            cancelButton.className = 'title-action-btn cancel-button';
-            cancelButton.style.display = 'none'; 
-            cancelButton.title = 'Szerkesztés megszakítása';
-            cancelButton.setAttribute('data-action', 'cancel-media'); 
-            cancelButton.setAttribute('data-id', item.firestoreId);
-
             
             titleContainer.appendChild(titleDisplay);
             titleContainer.appendChild(titleInput);
-            titleContainer.appendChild(saveButton);
-            titleContainer.appendChild(cancelButton); 
 
             itemDetails.appendChild(titleContainer);
             itemDetails.innerHTML += `<span>(${item.tipus === 'sorozat' ? 'Sorozat' : 'Film'})</span>`;
@@ -1020,9 +997,37 @@
             
             controls.appendChild(controlsRow); // Hozzáadjuk a sort
             
-            // HOZZÁADJUK AZ EDIT GOMBOT A TÖRLÉS GOMB ALÁ
+            // 4. Szerkesztő Gombok (Edit, Save, Cancel) - MINDEN IDE KERÜL A TÖRLÉS ALÁ
+
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Edit'; 
+            editButton.id = `edit-btn-${item.firestoreId}`;
+            editButton.className = 'title-action-btn edit-button';
+            editButton.title = 'Adatok szerkesztése';
+            editButton.setAttribute('data-action', 'edit-media');
+            editButton.setAttribute('data-id', item.firestoreId);
             controls.appendChild(editButton);
 
+            const saveButton = document.createElement('button');
+            saveButton.textContent = '✅ Mentés'; 
+            saveButton.id = `save-btn-${item.firestoreId}`;
+            saveButton.className = 'title-action-btn save-button';
+            saveButton.style.display = 'none'; 
+            saveButton.title = 'Adatok mentése';
+            saveButton.setAttribute('data-action', 'save-media'); 
+            saveButton.setAttribute('data-id', item.firestoreId);
+            controls.appendChild(saveButton); 
+
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = '❌ Mégse'; 
+            cancelButton.id = `cancel-btn-${item.firestoreId}`;
+            cancelButton.className = 'title-action-btn cancel-button';
+            cancelButton.style.display = 'none'; 
+            cancelButton.title = 'Szerkesztés megszakítása';
+            cancelButton.setAttribute('data-action', 'cancel-media'); 
+            cancelButton.setAttribute('data-id', item.firestoreId);
+            controls.appendChild(cancelButton); 
+            
             li.appendChild(controls);
 
             // --- MEGJEGYZÉSEK SZEKCIÓ ---
@@ -1044,8 +1049,6 @@
             notesTextarea.className = 'notes-textarea';
             notesTextarea.style.display = 'none';
             notesContainer.appendChild(notesTextarea);
-            
-            // A megjegyzés vezérlők törölve, a fő edit gomb vezérli
             
             li.appendChild(notesContainer);
             // --- MEGJEGYZÉSEK SZEKCIÓ VÉGE ---
