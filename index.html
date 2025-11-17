@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tracker</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
+
     <style>
         :root {
             --theme-color: #ff8c00; 
@@ -1131,7 +1134,7 @@
     function renderGameLists() {
         const nezendoUl = document.getElementById('game-nezendo-lista');
         const megnezveUl = document.getElementById('game-megnezve-lista');
-        if (!nezendoUl || !megnezveUl) return; // <-- JAVÍTVA: megmezveUl helyett megnezveUl
+        if (!nezendoUl || !megnezveUl) return; 
         nezendoUl.innerHTML = '';
         megnezveUl.innerHTML = '';
         
