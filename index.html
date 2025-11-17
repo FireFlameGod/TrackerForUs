@@ -40,6 +40,8 @@
       <button id="media-main-tab" class="active-main-tab" onclick="showMainTab('media')">🎬 Filmek & Sorozatok</button>
       <button id="game-main-tab" onclick="showMainTab('game')">🎮 Játékok</button>
     </div>
+
+    <!-- Média tartalom -->
     <div id="media-content">
       <div class="tabs sub-tabs">
         <button id="joint-sub-tab" class="active-sub-tab" onclick="showSubTab('joint')">🧑‍🤝‍🧑 Közös</button>
@@ -49,7 +51,9 @@
         <button id="donghua-sub-tab" onclick="showSubTab('donghua')">🎎 Donghua</button>
         <button id="other-sub-tab" onclick="showSubTab('other')">🌍 Egyéb</button>
       </div>
+
       <h2 id="media-category-title">🧑‍🤝‍🧑 Közös</h2>
+
       <div class="input-area">
         <input type="text" id="cim-input" placeholder="Cím...">
         <select id="tipus-select" onchange="toggleMaxEpisodeInput()">
@@ -60,11 +64,15 @@
         <input type="url" id="link-input" placeholder="Link (IMDb)">
         <button onclick="addNewItem()">Hozzáadás</button>
       </div>
+
       <h3>Nézendő</h3>
       <ul id="nezendo-lista" class="tracker-list"></ul>
+
       <h3>Megnézve</h3>
       <ul id="megnezve-lista" class="tracker-list"></ul>
     </div>
+
+    <!-- Játék tartalom -->
     <div id="game-tracker-content" style="display:none;">
       <h2>🎮 Játékok</h2>
       <div class="input-area">
@@ -78,8 +86,10 @@
         </select>
         <button onclick="addNewGame()">Hozzáadás</button>
       </div>
+
       <h3>Játszandó</h3>
       <ul id="game-nezendo-lista" class="tracker-list"></ul>
+
       <h3>Kijátszott</h3>
       <ul id="game-megnezve-lista" class="tracker-list"></ul>
     </div>
@@ -228,4 +238,4 @@ function renderLists(){
     const cancelBtn=document.createElement("button"); cancelBtn.id=`cancel-btn-${item.firestoreId}`; cancelBtn.className="cancel-button"; cancelBtn.style.display="none"; cancelBtn.textContent="❌ Mégse"; cancelBtn.onclick=()=>toggleEditMode(item.firestoreId);
     row.append(title,titleInput,editBtn,saveBtn,cancelBtn); details.appendChild(row);
     const typeSpan=document.createElement("span"); typeSpan.textContent=`(${item.tipus==="sorozat"?"Sorozat":"Film"})`; details.appendChild(typeSpan);
-    const linkDisplay=document.createElement(item.link?"a":"span"); linkDisplay.id=`link-display-${
+    const linkDisplay=document.createElement(item.link?"a":"span"); linkDisplay.id=`link-display-${item
