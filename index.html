@@ -603,17 +603,17 @@
         }
     }
     
-    // === CÍM, LINK ÉS MAX EPIZÓD SZERKESZTÉSI LOGIKA (saveNewTitle helyett) ===
+    // === CÍM, LINK ÉS MAX EPIZÓD SZERKESZTÉSI LOGIKA ===
 
     window.saveMediaItem = async function(firestoreId) {
         const titleInput = document.getElementById(`title-edit-${firestoreId}`);
         const linkInput = document.getElementById(`link-edit-${firestoreId}`);
-        const maxEpInput = document.getElementById(`max-episode-edit-${firestoreId}`);
+        // Max epizód input lekérése, csak sorozatoknál létezik
+        const maxEpInput = document.getElementById(`max-episode-edit-${firestoreId}`); 
         
         const newTitle = titleInput ? titleInput.value.trim() : null;
         const newLink = linkInput ? linkInput.value.trim() : null;
-        // Csak akkor konvertáljuk számmá, ha létezik az input mező és látható.
-        const newMaxEpisodes = maxEpInput && maxEpInput.style.display !== 'none' ? parseInt(maxEpInput.value) : null; 
+        const newMaxEpisodes = maxEpInput ? parseInt(maxEpInput.value) : null; 
 
         if (!firestoreId || !titleInput) { return; }
 
@@ -659,8 +659,7 @@
         const linkDisplay = document.getElementById(`link-display-${firestoreId}`);
         const linkInput = document.getElementById(`link-edit-${firestoreId}`);
 
-        // Max epizód mezők
-        const maxEpDisplay = document.getElementById(`max-episode-display-${firestoreId}`);
+        // Max epizód mező (Csak input, a megjelenített Max Epizód törölve lett a HTML-ből)
         const maxEpInput = document.getElementById(`max-episode-edit-${firestoreId}`);
         
         // Gombok
@@ -682,16 +681,16 @@
             if (linkDisplay) linkDisplay.style.display = 'none'; // A link lehet <a> vagy <span>
             if (linkInput) linkInput.style.display = 'inline-block';
             
-            // Max Epizód mezők (csak sorozatnál)
+            // Max Epizód mező (csak sorozatnál)
             if (currentItem.tipus === 'sorozat') {
-                if (maxEpDisplay) maxEpDisplay.style.display = 'none';
+                // A megjelenítő elem (maxEpDisplay) már nincs itt
                 if (maxEpInput) maxEpInput.style.display = 'inline-block';
             }
             
             // Adatok betöltése
             titleInput.value = currentItem.cim; 
             if (linkInput) linkInput.value = currentItem.link || ''; 
-            if (maxEpInput) maxEpInput.value = currentItem.maxEpisodes || ''; 
+            if (maxEpInput) maxEpInput.value = currentItem.maxEpisodes || ''; // Érték betöltése
             
             editBtn.style.display = 'none';
             saveBtn.style.display = 'inline-block';
@@ -709,9 +708,9 @@
             if (linkDisplay) linkDisplay.style.display = 'block'; // Block, mert hivatkozás
             if (linkInput) linkInput.style.display = 'none';
 
-            // Max Epizód mezők (csak sorozatnál)
+            // Max Epizód mező (csak sorozatnál)
             if (currentItem.tipus === 'sorozat') {
-                if (maxEpDisplay) maxEpDisplay.style.display = 'inline'; 
+                // A megjelenítő elem (maxEpDisplay) már nincs itt
                 if (maxEpInput) maxEpInput.style.display = 'none';
             }
             
@@ -782,7 +781,6 @@
     }
 
     // === 6. JÁTÉK CRUD FUNKCIÓK ===
-    // (A játék logikán nem kellett változtatni, mivel ott nem kértél megjegyzés mezőt)
 
     window.addNewGame = async function() {
         const cim = document.getElementById('game-cim-input').value.trim();
@@ -903,7 +901,7 @@
             const li = document.createElement('li');
             li.className = `tracker-item ${item.statusz === 'megnézve' ? 'watched' : ''}`;
             
-            // --- BAL OLDALI TARTALOM (Cím, Link, Max epizód) ---
+            // --- BAL OLDALI TARTALOM (Cím, Link, Max epizód input) ---
             
             const itemDetails = document.createElement('div');
             itemDetails.className = 'item-details';
@@ -928,7 +926,7 @@
             titleInput.style.display = 'none'; 
             titleInput.onkeypress = (e) => { 
                 if(e.key === 'Enter') {
-                    saveMediaItem(item.firestoreId); // <-- MÓDOSÍTVA (saveNewTitle -> saveMediaItem)
+                    saveMediaItem(item.firestoreId); 
                 } 
             };
 
@@ -945,24 +943,16 @@
             linkInput.style.display = 'none'; 
             linkInput.placeholder = 'Link (pl.: IMDb)';
             
-            // 3. Max Epizód Megjelenítés és Szerkesztés (Csak sorozatnál)
-            let maxEpisodeHtml = '';
-            let maxEpisodeInputHtml = '';
-
+            // 3. Max Epizód Szerkesztés INPUT (Csak sorozatnál)
             if (item.tipus === 'sorozat') {
-                const max = item.maxEpisodes !== null && item.maxEpisodes !== undefined ? item.maxEpisodes : '?';
-                
-                maxEpisodeHtml = `
-                    <span>Max Epizód: 
-                        <strong id="max-episode-display-${item.firestoreId}" style="display: inline;">${max}</strong>
-                    </span>
-                `;
-
-                maxEpisodeInputHtml = `
-                    <input type="number" id="max-episode-edit-${item.firestoreId}" 
-                           value="${item.maxEpisodes || ''}" class="max-episode-edit-input" style="display: none;" 
-                           placeholder="Max epizód">
-                `;
+                const maxEpInput = document.createElement('input');
+                maxEpInput.type = 'number';
+                maxEpInput.id = `max-episode-edit-${item.firestoreId}`;
+                maxEpInput.value = item.maxEpisodes || '';
+                maxEpInput.className = 'max-episode-edit-input';
+                maxEpInput.style.display = 'none'; 
+                maxEpInput.placeholder = 'Max epizód';
+                itemDetails.appendChild(maxEpInput);
             }
 
 
@@ -1008,29 +998,20 @@
             itemDetails.innerHTML += linkHtmlDisplay;
             itemDetails.appendChild(linkInput);
 
-            // Max Epizód megjelenítő és szerkesztő
-            if (item.tipus === 'sorozat') {
-                itemDetails.innerHTML += maxEpisodeHtml;
-                // A max episode inputot is az itemDetails-be tesszük
-                const maxEpInputEl = document.createElement('div');
-                maxEpInputEl.innerHTML = maxEpisodeInputHtml;
-                itemDetails.appendChild(maxEpInputEl.firstChild);
-            }
-
             li.appendChild(itemDetails);
 
             // --- JOBB OLDALI TARTALOM (Vezérlők) ---            
             const controls = document.createElement('div');
             controls.className = 'item-controls';
             
-            // Epizód vezérlés
+            // Epizód vezérlés (4/20 formátum visszaállítva)
             if (item.tipus === 'sorozat') {
                 const episodeControls = document.createElement('div');
                 episodeControls.className = 'episode-controls';
                 
                 const watched = item.watchedEpisodes !== null && item.watchedEpisodes !== undefined ? item.watchedEpisodes : 0;
                 const max = item.maxEpisodes !== null && item.maxEpisodes !== undefined ? item.maxEpisodes : '?';
-                const episodeProgress = (max !== '?') ? ` / ${max}` : '';
+                const episodeProgress = (max !== '?') ? `/${max}` : '';
                 
                 // ÚJ: Következő epizód számítása
                 const nextEpisode = watched + 1;
@@ -1192,7 +1173,7 @@
         }
         
         if (target.matches('[data-action="save-media"]')) {
-             if (firestoreId) saveMediaItem(firestoreId); // <-- MÓDOSÍTVA (saveNewTitle -> saveMediaItem)
+             if (firestoreId) saveMediaItem(firestoreId);
         }
 
         if (target.matches('[data-action="cancel-media"]')) {
