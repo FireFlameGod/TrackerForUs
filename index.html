@@ -143,7 +143,7 @@
         }
         .episode-controls button { background-color: #555; color: #f0f0f0; padding: 5px 10px; box-shadow: none; }
         
-        /* Fő szerkesztő gomb (Edit, Mentés, Mégse) stílusa - Ezt használjuk a szélességre */
+        /* Fő szerkesztő gomb (Edit, Mentés, Mégse, Törlés) stílusa - MINDEN TELJES SZÉLESSÉGBEN */
         .title-action-btn { 
             font-size: 1em; 
             padding: 10px 15px; 
@@ -152,8 +152,8 @@
             border-radius: 6px;
             background-color: var(--theme-color); 
             color: #1e1e1e; 
-            width: 100%; /* Kitölti a controls divet */
-            margin-top: 5px; /* Hely az egymás alatt lévő gombok között */
+            width: 100%; /* Ez a kulcs a szélességhez */
+            margin-top: 5px; 
             text-align: center;
         }
 
@@ -161,14 +161,12 @@
         .save-button { background-color: #28a745; color: white; } 
         .cancel-button { background-color: #6c757d; color: white; } 
 
-        .delete-button { 
-            background-color: #dc3545; 
-            color: white; 
-            margin-left: 10px;
-            /* A törlés gomb is széles lesz a flex-container miatt, ha a többi elem szűkebb */
-            /* De most a flex-item-controls állítja be a width-et, így minden gomb széles lesz */
+        /* Törlés gomb stílusa, hogy a title-action-btn mellett piros is legyen */
+        .delete-button-full-width { 
+            background-color: #dc3545 !important; 
+            color: white !important; 
         }
-        
+
         /* Vezérlők konténere */
         .item-controls { 
             display: flex; 
@@ -176,19 +174,17 @@
             flex-wrap: wrap; 
             gap: 10px; 
             margin-top: 5px;
-            flex-direction: column; /* Ezek miatt stackelnek a gombok, és a 100% width miatt szélesek */
+            flex-direction: column; /* Stackelés */
             align-items: flex-end; 
             gap: 5px;
-            min-width: 170px; /* Alapértelmezett szélesség biztosítása a Törlés gomb számára */
+            min-width: 170px; 
         }
 
-        /* Hogy a Statusz és Törlés gomb egy sorban maradjon */
+        /* Hogy a Statusz és Epizód vezérlő egy sorban maradjon */
         .item-controls .controls-row {
             display: flex;
             align-items: center;
             gap: 10px;
-            /* A Törlés gomb a controls-row-ban van, ami flex, a gombok méretét kitölti az epizód vezérlő, így a törlés gomb is akkora lesz, amekkora a tartalom. 
-            Mivel a többi gomb 100% szélesre van állítva a column flex konténerben, ez vizuálisan egységes megjelenést biztosít. */
         }
         
         .item-details { display: flex; flex-direction: column; margin-right: 20px; flex-grow: 1; min-width: 250px; }
@@ -632,7 +628,7 @@
         const titleInput = document.getElementById(`title-edit-${firestoreId}`);
         const linkInput = document.getElementById(`link-edit-${firestoreId}`);
         const maxEpInput = document.getElementById(`max-episode-edit-${firestoreId}`); 
-        const notesTextarea = document.getElementById(`notes-edit-${firestoreId}`); // Megjegyzés mező
+        const notesTextarea = document.getElementById(`notes-edit-${firestoreId}`); 
         
         const newTitle = titleInput ? titleInput.value.trim() : null;
         const newLink = linkInput ? linkInput.value.trim() : null;
@@ -642,37 +638,33 @@
         if (!firestoreId || !titleInput) { return; }
 
         if (!newTitle || newTitle === "") { 
+            // Ha üres címmel próbál menteni, maradhat szerkesztési módban, vagy visszaállhat
             toggleEditMode(firestoreId); 
             return; 
         }
         
         const updateData = {
             cim: newTitle,
-            link: newLink || null, // Üres string null-ra vált
-            notes: newNotes || "" // Megjegyzések mentése
+            link: newLink || null, 
+            notes: newNotes || "" 
         };
 
         const currentItem = trackerList.find(item => item.firestoreId === firestoreId);
 
         if (currentItem && currentItem.tipus === 'sorozat') {
-             // Sorozat esetén mentjük a max epizód számot is
              updateData.maxEpisodes = newMaxEpisodes && newMaxEpisodes > 0 ? newMaxEpisodes : null;
              
-             // Frissítjük a státuszt is, ha a max epizód változik
              if (updateData.maxEpisodes && currentItem.watchedEpisodes >= updateData.maxEpisodes) {
                  updateData.statusz = 'megnézve';
              } else if (currentItem.statusz === 'megnézve' && currentItem.watchedEpisodes < (updateData.maxEpisodes || 0)) {
-                 // Ha a státusz 'megnézve' volt, de a megnézett epizód kevesebb, mint az új max
                  updateData.statusz = 'nézendő';
              }
         }
         
         try {
             await updateDoc(doc(getMediaCollectionRef(), firestoreId), updateData);
-            // A Firestore listener frissíti a nézetet, ami automatikusan kikapcsolja a szerkesztő módot.
         } catch (e) {
             console.error("Hiba az elem frissítésekor: ", e);
-            // Ha hiba van, jobb, ha bekapcsolva marad a szerkesztő mód
         }
     }
     
@@ -696,6 +688,8 @@
         const editBtn = document.getElementById(`edit-btn-${firestoreId}`);
         const saveBtn = document.getElementById(`save-btn-${firestoreId}`);
         const cancelBtn = document.getElementById(`cancel-btn-${firestoreId}`);
+        // Törlés gomb (nem rejtjük el)
+        const deleteBtn = document.getElementById(`delete-btn-${firestoreId}`); 
         
         if (!titleDisplay || !titleInput || !editBtn || !saveBtn || !cancelBtn) { return; } 
 
@@ -707,30 +701,27 @@
             titleDisplay.style.display = 'none';
             titleInput.style.display = 'inline-block';
             
-            // Link mezők
             if (linkDisplay) linkDisplay.style.display = 'none'; 
             if (linkInput) linkInput.style.display = 'inline-block';
             
-            // Max Epizód mező (csak sorozatnál)
             if (currentItem.tipus === 'sorozat') {
                 if (maxEpInput) maxEpInput.style.display = 'inline-block';
             }
 
-            // Megjegyzés mezők
             if (notesDisplay) notesDisplay.style.display = 'none';
             if (notesTextarea) {
                 notesTextarea.style.display = 'block';
-                notesTextarea.value = currentItem.notes || ''; // Érték betöltése
+                notesTextarea.value = currentItem.notes || ''; 
             }
             
-            // Adatok betöltése
             titleInput.value = currentItem.cim; 
             if (linkInput) linkInput.value = currentItem.link || ''; 
             if (maxEpInput) maxEpInput.value = currentItem.maxEpisodes || ''; 
             
             editBtn.style.display = 'none';
-            saveBtn.style.display = 'block'; // Block, hogy széles legyen a column flex-ben
-            cancelBtn.style.display = 'block'; // Block, hogy széles legyen a column flex-ben
+            saveBtn.style.display = 'block'; 
+            cancelBtn.style.display = 'block'; 
+            if (deleteBtn) deleteBtn.style.display = 'none'; // Elrejtjük a törlés gombot, amíg szerkesztünk
             
             titleInput.focus();
             const len = titleInput.value.length;
@@ -740,22 +731,20 @@
             titleDisplay.style.display = 'inline-block';
             titleInput.style.display = 'none';
             
-            // Link mezők
             if (linkDisplay) linkDisplay.style.display = 'block'; 
             if (linkInput) linkInput.style.display = 'none';
 
-            // Max Epizód mező (csak sorozatnál)
             if (currentItem.tipus === 'sorozat') {
                 if (maxEpInput) maxEpInput.style.display = 'none';
             }
 
-            // Megjegyzés mezők
             if (notesDisplay) notesDisplay.style.display = 'block'; 
             if (notesTextarea) notesTextarea.style.display = 'none';
             
-            editBtn.style.display = 'block'; // Block, hogy széles legyen a column flex-ben
+            editBtn.style.display = 'block'; 
             saveBtn.style.display = 'none';
             cancelBtn.style.display = 'none';
+            if (deleteBtn) deleteBtn.style.display = 'block'; // Visszamutatjuk a törlés gombot
         }
     }
 
@@ -818,7 +807,6 @@
             gameContent.style.display = 'none';
             subTabs.style.display = 'flex'; 
             
-            // Ha átváltunk a média fülre, biztosítjuk, hogy az alkategória stílusa aktív legyen
             showSubTab(currentCategory); 
         } else {
             mediaContent.style.display = 'none';
@@ -842,7 +830,7 @@
         // Cím frissítése
         titleElement.textContent = CATEGORY_MAP[category];
         
-        renderLists(); // Új kategória adatok megjelenítése
+        renderLists(); 
     }
 
 
@@ -950,7 +938,7 @@
             const controls = document.createElement('div');
             controls.className = 'item-controls';
             
-            // Hozzáadunk egy sort a vezérlő gomboknak, hogy ne a cím mellett legyenek az epizód gombok
+            // Hozzáadunk egy sort az epizód és státusz gomboknak
             const controlsRow = document.createElement('div');
             controlsRow.className = 'controls-row';
 
@@ -975,7 +963,7 @@
                 controlsRow.appendChild(episodeControls);
             }
             
-            // Státusz váltó gomb
+            // Státusz váltó gomb (marad a controlsRow-ban)
             if (item.statusz === 'nézendő') {
                 const button = document.createElement('button');
                 button.textContent = 'Megnéztem';
@@ -988,16 +976,9 @@
                 controlsRow.appendChild(button);
             }
             
-            // Törlés gomb
-            const deleteBtn = document.createElement('button');
-            deleteBtn.textContent = 'Törlés 🗑️';
-            deleteBtn.className = 'delete-button';
-            deleteBtn.onclick = () => deleteItem(item.firestoreId);
-            controlsRow.appendChild(deleteBtn);
-            
             controls.appendChild(controlsRow); // Hozzáadjuk a sort
-            
-            // 4. Szerkesztő Gombok (Edit, Save, Cancel) - MINDEN IDE KERÜL A TÖRLÉS ALÁ
+
+            // 4. Szerkesztő Gombok (Edit, Save, Cancel) - TELJES SZÉLESSÉGBEN STACKELVE
 
             const editButton = document.createElement('button');
             editButton.textContent = 'Edit'; 
@@ -1027,6 +1008,14 @@
             cancelButton.setAttribute('data-action', 'cancel-media'); 
             cancelButton.setAttribute('data-id', item.firestoreId);
             controls.appendChild(cancelButton); 
+
+            // Törlés gomb (TELJES SZÉLESSÉGBEN, az edit gombokkal stackelve)
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Törlés 🗑️';
+            deleteBtn.id = `delete-btn-${item.firestoreId}`;
+            deleteBtn.className = 'title-action-btn delete-button-full-width'; 
+            deleteBtn.onclick = () => deleteItem(item.firestoreId);
+            controls.appendChild(deleteBtn);
             
             li.appendChild(controls);
 
@@ -1081,21 +1070,28 @@
             const controls = document.createElement('div');
             controls.className = 'item-controls';
             
+            // Státusz gomb a controlsRow-ban (mivel itt nincs epizód, csak a státusz gomb)
+            const controlsRow = document.createElement('div');
+            controlsRow.className = 'controls-row';
+
             if (item.statusz === 'játszandó') {
                 const button = document.createElement('button');
                 button.textContent = 'Kijátszottam';
                 button.onclick = () => updateGameStatus(item.firestoreId, 'kijátszottam');
-                controls.appendChild(button);
+                controlsRow.appendChild(button);
             } else {
                 const button = document.createElement('button');
                 button.textContent = 'Mégse játszottam';
                 button.onclick = () => updateGameStatus(item.firestoreId, 'játszandó');
-                controls.appendChild(button);
+                controlsRow.appendChild(button);
             }
+            controls.appendChild(controlsRow);
             
+            // Törlés gomb (TELJES SZÉLESSÉGBEN, az edit gomb stílusával)
             const deleteBtn = document.createElement('button');
             deleteBtn.textContent = 'Törlés 🗑️';
-            deleteBtn.className = 'delete-button';
+            // Megkapja a teljes szélességű stílusokat
+            deleteBtn.className = 'title-action-btn delete-button-full-width'; 
             deleteBtn.onclick = () => deleteGameItem(item.firestoreId);
             controls.appendChild(deleteBtn);
             
