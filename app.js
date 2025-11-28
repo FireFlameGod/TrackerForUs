@@ -338,7 +338,7 @@ window.toggleEditMode = function(firestoreId) {
     const titleInput = document.getElementById(`title-edit-${firestoreId}`);
     
     // Link mezők
-    const linkDisplay = document.getElementById(`link-display-${firestoreId}`);
+    const linkDisplayDiv = document.getElementById(`link-display-div-${firestoreId}`); // JAVÍTVA: A linket tartalmazó DIV-et célozzuk
     const linkInput = document.getElementById(`link-edit-${firestoreId}`);
     
     // Max epizód mező (Csak input)
@@ -369,8 +369,11 @@ window.toggleEditMode = function(firestoreId) {
         titleDisplay.style.display = 'none';
         titleInput.style.display = 'inline-block';
         
-        if (linkDisplay) linkDisplay.style.display = 'none'; 
-        if (linkInput) linkInput.style.display = 'inline-block';
+        if (linkDisplayDiv) linkDisplayDiv.style.display = 'none'; // JAVÍTVA: Link megjelenítés elrejtése
+        if (linkInput) {
+             linkInput.style.display = 'inline-block';
+             linkInput.value = currentItem.link || ''; 
+        }
         
         // ÚJ: Thumbnail
         if (thumbnailInput) {
@@ -389,7 +392,6 @@ window.toggleEditMode = function(firestoreId) {
         }
         
         titleInput.value = currentItem.cim; 
-        if (linkInput) linkInput.value = currentItem.link || ''; 
         if (maxEpInput) maxEpInput.value = currentItem.maxEpisodes || ''; 
         
         if (sendBtn) sendBtn.style.display = 'none'; 
@@ -407,7 +409,7 @@ window.toggleEditMode = function(firestoreId) {
         titleDisplay.style.display = 'inline-block';
         titleInput.style.display = 'none';
         
-        if (linkDisplay) linkDisplay.style.display = 'block'; 
+        if (linkDisplayDiv) linkDisplayDiv.style.display = 'block'; // JAVÍTVA: Link megjelenítés mutatása
         if (linkInput) linkInput.style.display = 'none';
         
         // ÚJ: Thumbnail
@@ -582,22 +584,20 @@ window.renderLists = function() {
         li.appendChild(thumbnailContainer); 
 
         
-        // --- 2. KÖZÉPSŐ: ITEM RÉSZLETEK ÉS SZERKESZTŐ INPUTOK ---
+        // --- 2. KÖZÉPSŐ: ITEM RÉSZLETEK ÉS SZERKESZTŐ INPUTOK (JAVÍTOTT DOM STRUKTÚRA) ---
         const itemDetails = document.createElement('div');
         itemDetails.className = 'item-details';
         
-        // Cím konténer: megjelenített szöveg + rejtett input mező
+        // A. Cím Megjelenítés és Szerkesztés (Konténer)
         const titleContainer = document.createElement('div');
         titleContainer.className = 'item-title-container';
         
-        // 1. Cím Megjelenítés és Szerkesztés
         const titleDisplay = document.createElement('strong');
         titleDisplay.id = `title-display-${item.firestoreId}`;
         titleDisplay.textContent = item.cim;
         titleDisplay.style.display = 'inline-block'; 
         titleDisplay.style.marginRight = '5px'; 
         
-
         const titleInput = document.createElement('input');
         titleInput.type = 'text';
         titleInput.id = `title-edit-${item.firestoreId}`;
@@ -610,11 +610,24 @@ window.renderLists = function() {
             } 
         };
 
-        // 2. Link Megjelenítés és Szerkesztés
-        const linkHtmlDisplay = item.link 
-            ? `<a id="link-display-${item.firestoreId}" href="${item.link}" target="_blank">Link 🔗</a>` 
-            : `<span id="link-display-${item.firestoreId}" style="color: #aaa;">Nincs link</span>`;
+        titleContainer.appendChild(titleDisplay);
+        titleContainer.appendChild(titleInput);
+        itemDetails.appendChild(titleContainer);
+        
+        // B. Típus span
+        const typeSpan = document.createElement('span');
+        typeSpan.textContent = `(${item.tipus === 'sorozat' ? 'Sorozat' : 'Film'})`;
+        itemDetails.appendChild(typeSpan);
+        
+        // C. Link Megjelenítő Konténer
+        const linkDisplayDiv = document.createElement('div');
+        linkDisplayDiv.id = `link-display-div-${item.firestoreId}`; // Új ID a konténernek
+        linkDisplayDiv.innerHTML = item.link 
+            ? `<a href="${item.link}" target="_blank">Link 🔗</a>` 
+            : `<span style="color: #aaa;">Nincs link</span>`;
+        itemDetails.appendChild(linkDisplayDiv); 
 
+        // D. Link szerkesztő input
         const linkInput = document.createElement('input');
         linkInput.type = 'url';
         linkInput.id = `link-edit-${item.firestoreId}`;
@@ -622,8 +635,9 @@ window.renderLists = function() {
         linkInput.className = 'link-edit-input';
         linkInput.style.display = 'none'; 
         linkInput.placeholder = 'Link (pl.: IMDb)';
+        itemDetails.appendChild(linkInput);
         
-        // ÚJ: 3. Thumbnail URL szerkesztő input
+        // E. Thumbnail URL szerkesztő input
         const thumbnailInput = document.createElement('input');
         thumbnailInput.type = 'url';
         thumbnailInput.id = `thumbnail-edit-${item.firestoreId}`;
@@ -631,9 +645,9 @@ window.renderLists = function() {
         thumbnailInput.className = 'thumbnail-edit-input';
         thumbnailInput.style.display = 'none'; 
         thumbnailInput.placeholder = 'Kép URL (thumbnail)';
+        itemDetails.appendChild(thumbnailInput);
         
-        
-        // 4. Max Epizód Szerkesztés INPUT (Csak sorozatnál)
+        // F. Max Epizód Szerkesztés INPUT (Csak sorozatnál)
         if (item.tipus === 'sorozat') {
             const maxEpInput = document.createElement('input');
             maxEpInput.type = 'number';
@@ -644,17 +658,6 @@ window.renderLists = function() {
             maxEpInput.placeholder = 'Max epizód';
             itemDetails.appendChild(maxEpInput);
         }
-        
-        titleContainer.appendChild(titleDisplay);
-        titleContainer.appendChild(titleInput);
-
-        itemDetails.appendChild(titleContainer);
-        itemDetails.innerHTML += `<span>(${item.tipus === 'sorozat' ? 'Sorozat' : 'Film'})</span>`;
-        
-        // Link megjelenítő, utána a link szerkesztő
-        itemDetails.innerHTML += linkHtmlDisplay;
-        itemDetails.appendChild(linkInput);
-        itemDetails.appendChild(thumbnailInput); // Hozzáadás az itemDetails-hez
         
         li.appendChild(itemDetails);
 
