@@ -295,6 +295,7 @@ window.saveMediaItem = async function(firestoreId) {
     if (!firestoreId || !titleInput) { return; }
 
     if (!newTitle || newTitle === "") { 
+        // Ha üres a cím, kilépünk a szerkesztési módból a mentés nélkül
         toggleEditMode(firestoreId); 
         return; 
     }
@@ -329,8 +330,7 @@ window.saveMediaItem = async function(firestoreId) {
     
     try {
         await updateDoc(doc(getMediaCollectionRef(), firestoreId), updateData);
-        // FIX: Szerkesztési mód kikapcsolása sikeres mentés után
-        toggleEditMode(firestoreId);
+        // FIX: Eltávolítva a toggleEditMode. Az onSnapshot listener frissíti a listát.
     } catch (e) {
         console.error("Hiba az elem frissítésekor: ", e);
     }
@@ -490,6 +490,7 @@ window.saveGameItem = async function(firestoreId) {
     if (!firestoreId || !titleInput) { return; }
 
     if (!newTitle || newTitle === "") { 
+        // Ha üres a cím, kilépünk a szerkesztési módból a mentés nélkül
         window.toggleGameEditMode(firestoreId); 
         return; 
     }
@@ -502,8 +503,7 @@ window.saveGameItem = async function(firestoreId) {
     
     try {
         await updateDoc(doc(getGameCollectionRef(), firestoreId), updateData);
-        // FIX: Szerkesztési mód kikapcsolása sikeres mentés után (Hasonló hiba volt, mint a media résznél)
-        window.toggleGameEditMode(firestoreId);
+        // FIX: Eltávolítva a window.toggleGameEditMode. Az onSnapshot listener frissíti a listát.
     } catch (e) {
         console.error("Hiba a játék elem frissítésekor: ", e);
     }
@@ -1108,7 +1108,7 @@ function handleListClick(event) {
     }
     
     if (target.matches('[data-action="save-media"]')) {
-         // A saveMediaItem most már tartalmazza a toggleEditMode-ot a végén
+         // A saveMediaItem most már csak a Firestore frissítéséért felelős
          saveMediaItem(firestoreId);
     }
 
