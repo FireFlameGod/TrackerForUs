@@ -129,10 +129,9 @@ h1, h2, h3 { color: var(--theme-color); border-bottom: 2px solid #3d3d3d; paddin
 /* 🖼️ KÉP ÁTMÉRETEZÉS STÍLUSOK (A nyúlás megakadályozása) */
 .thumbnail-container {
     flex-shrink: 0; 
-    /* MÓDOSÍTOTT SZÉLESSÉG */
-    width: 180px; 
-    /* MÓDOSÍTOTT MAGASSÁG */
-    height: 100px; 
+    /* ÚJ KOMPROMISSZUMOS MÉRET: Álló (poszter) arányhoz igazítva, de nagyobb */
+    width: 120px; 
+    height: 180px; 
     margin-right: 15px; 
     border-radius: 4px;
     overflow: hidden; 
