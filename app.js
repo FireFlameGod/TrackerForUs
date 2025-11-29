@@ -279,7 +279,7 @@ window.saveMediaItem = async function(firestoreId) {
     const titleInput = document.getElementById(`title-edit-${firestoreId}`);
     const linkInput = document.getElementById(`link-edit-${firestoreId}`);
     const maxEpInput = document.getElementById(`max-episode-edit-${firestoreId}`); 
-    // ÚJ: watched episodes input
+    // watched episodes input
     const watchedEpInput = document.getElementById(`watched-episode-edit-${firestoreId}`); 
     const notesTextarea = document.getElementById(`notes-edit-${firestoreId}`); 
     const thumbnailInput = document.getElementById(`thumbnail-edit-${firestoreId}`);
@@ -287,7 +287,7 @@ window.saveMediaItem = async function(firestoreId) {
     const newTitle = titleInput ? titleInput.value.trim() : null;
     const newLink = linkInput ? linkInput.value.trim() : null;
     const newMaxEpisodes = maxEpInput ? parseInt(maxEpInput.value) : null; 
-    // ÚJ: watched episodes érték
+    // watched episodes érték
     let newWatchedEpisodes = watchedEpInput ? parseInt(watchedEpInput.value) : null; 
     const newNotes = notesTextarea ? notesTextarea.value : null;
     const newThumbnailUrl = thumbnailInput ? thumbnailInput.value.trim() : null;
@@ -314,7 +314,7 @@ window.saveMediaItem = async function(firestoreId) {
         newMaxEpisodes = newMaxEpisodes && newMaxEpisodes > 0 ? newMaxEpisodes : null;
 
         // Frissítési adatok hozzáadása
-        updateData.watchedEpisodes = newWatchedEpisodes; // MÓDOSÍTVA
+        updateData.watchedEpisodes = newWatchedEpisodes; 
         updateData.maxEpisodes = newMaxEpisodes;
          
         // Státusz frissítése az új értékek alapján
@@ -324,11 +324,13 @@ window.saveMediaItem = async function(firestoreId) {
              newStatus = 'megnézve';
         } 
         
-        updateData.statusz = newStatus; // MÓDOSÍTVA
+        updateData.statusz = newStatus; 
     }
     
     try {
         await updateDoc(doc(getMediaCollectionRef(), firestoreId), updateData);
+        // FIX: Szerkesztési mód kikapcsolása sikeres mentés után
+        toggleEditMode(firestoreId);
     } catch (e) {
         console.error("Hiba az elem frissítésekor: ", e);
     }
@@ -343,7 +345,7 @@ window.toggleEditMode = function(firestoreId) {
     
     // Max epizód mező (Csak input)
     const maxEpInput = document.getElementById(`max-episode-edit-${firestoreId}`);
-    // ÚJ: Nézett epizód mező (Csak input)
+    // Nézett epizód mező (Csak input)
     const watchedEpInput = document.getElementById(`watched-episode-edit-${firestoreId}`); 
 
     const notesDisplay = document.getElementById(`notes-display-${firestoreId}`);
@@ -381,7 +383,7 @@ window.toggleEditMode = function(firestoreId) {
         }
 
         if (currentItem.tipus === 'sorozat') {
-            if (watchedEpInput) { // ÚJ MEZŐ TOGGLE
+            if (watchedEpInput) { 
                 watchedEpInput.style.display = 'inline-block';
                 watchedEpInput.value = currentItem.watchedEpisodes || 0;
             }
@@ -415,7 +417,7 @@ window.toggleEditMode = function(firestoreId) {
         if (thumbnailInput) thumbnailInput.style.display = 'none';
 
         if (currentItem.tipus === 'sorozat') {
-            if (watchedEpInput) watchedEpInput.style.display = 'none'; // ÚJ MEZŐ TOGGLE
+            if (watchedEpInput) watchedEpInput.style.display = 'none'; 
             if (maxEpInput) maxEpInput.style.display = 'none';
         }
 
@@ -500,6 +502,8 @@ window.saveGameItem = async function(firestoreId) {
     
     try {
         await updateDoc(doc(getGameCollectionRef(), firestoreId), updateData);
+        // FIX: Szerkesztési mód kikapcsolása sikeres mentés után (Hasonló hiba volt, mint a media résznél)
+        window.toggleGameEditMode(firestoreId);
     } catch (e) {
         console.error("Hiba a játék elem frissítésekor: ", e);
     }
@@ -1104,6 +1108,7 @@ function handleListClick(event) {
     }
     
     if (target.matches('[data-action="save-media"]')) {
+         // A saveMediaItem most már tartalmazza a toggleEditMode-ot a végén
          saveMediaItem(firestoreId);
     }
 
