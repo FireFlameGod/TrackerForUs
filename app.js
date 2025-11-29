@@ -286,9 +286,6 @@ window.saveMediaItem = async function(firestoreId) {
     
     const newTitle = titleInput ? titleInput.value.trim() : null;
     const newLink = linkInput ? linkInput.value.trim() : null;
-    const newMaxEpisodes = maxEpInput ? parseInt(maxEpInput.value) : null; 
-    // watched episodes érték
-    let newWatchedEpisodes = watchedEpInput ? parseInt(watchedEpInput.value) : null; 
     const newNotes = notesTextarea ? notesTextarea.value : null;
     const newThumbnailUrl = thumbnailInput ? thumbnailInput.value.trim() : null;
 
@@ -310,9 +307,13 @@ window.saveMediaItem = async function(firestoreId) {
     const currentItem = trackerList.find(item => item.firestoreId === firestoreId);
 
     if (currentItem && currentItem.tipus === 'sorozat') {
-        // Adatok tisztítása/korlátozása
-        newWatchedEpisodes = newWatchedEpisodes !== null && newWatchedEpisodes >= 0 ? newWatchedEpisodes : 0;
-        newMaxEpisodes = newMaxEpisodes && newMaxEpisodes > 0 ? newMaxEpisodes : null;
+        // Robusztus értékkiolvasás és tisztítás: NaN -> 0 vagy null
+        const rawWatched = watchedEpInput ? parseInt(watchedEpInput.value) : NaN;
+        const rawMax = maxEpInput ? parseInt(maxEpInput.value) : NaN;
+
+        // Adatok tisztítása/korlátozása - Robusztus NaN/negatív/nulla kezelés
+        let newWatchedEpisodes = (isNaN(rawWatched) || rawWatched < 0) ? 0 : rawWatched;
+        let newMaxEpisodes = (isNaN(rawMax) || rawMax <= 0) ? null : rawMax;
 
         // Frissítési adatok hozzáadása
         updateData.watchedEpisodes = newWatchedEpisodes; 
@@ -330,9 +331,11 @@ window.saveMediaItem = async function(firestoreId) {
     
     try {
         await updateDoc(doc(getMediaCollectionRef(), firestoreId), updateData);
-        // FIX: Eltávolítva a toggleEditMode. Az onSnapshot listener frissíti a listát.
+        // FIX: A mentés sikeres volt, kikapcsoljuk a szerkesztési módot.
+        toggleEditMode(firestoreId); 
     } catch (e) {
-        console.error("Hiba az elem frissítésekor: ", e);
+        console.error("Kritikus hiba az elem frissítésekor: ", e);
+        // Ha hiba van, a gomb a Mentés állapotban marad, jelezve a hibát.
     }
 }
 
@@ -503,7 +506,8 @@ window.saveGameItem = async function(firestoreId) {
     
     try {
         await updateDoc(doc(getGameCollectionRef(), firestoreId), updateData);
-        // FIX: Eltávolítva a window.toggleGameEditMode. Az onSnapshot listener frissíti a listát.
+        // FIX: A mentés sikeres volt, kikapcsoljuk a szerkesztési módot.
+        window.toggleGameEditMode(firestoreId);
     } catch (e) {
         console.error("Hiba a játék elem frissítésekor: ", e);
     }
@@ -1108,12 +1112,10 @@ function handleListClick(event) {
     }
     
     if (target.matches('[data-action="save-media"]')) {
-         // A saveMediaItem most már csak a Firestore frissítéséért felelős
          saveMediaItem(firestoreId);
     }
 
     if (target.matches('[data-action="cancel-media"]')) {
-         // A Mégse gomb továbbra is azonnal kikapcsolja a szerkesztést
          toggleEditMode(firestoreId); 
     }
 }
