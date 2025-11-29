@@ -279,7 +279,6 @@ window.saveMediaItem = async function(firestoreId) {
     const titleInput = document.getElementById(`title-edit-${firestoreId}`);
     const linkInput = document.getElementById(`link-edit-${firestoreId}`);
     const maxEpInput = document.getElementById(`max-episode-edit-${firestoreId}`); 
-    // watched episodes input
     const watchedEpInput = document.getElementById(`watched-episode-edit-${firestoreId}`); 
     const notesTextarea = document.getElementById(`notes-edit-${firestoreId}`); 
     const thumbnailInput = document.getElementById(`thumbnail-edit-${firestoreId}`);
@@ -307,19 +306,15 @@ window.saveMediaItem = async function(firestoreId) {
     const currentItem = trackerList.find(item => item.firestoreId === firestoreId);
 
     if (currentItem && currentItem.tipus === 'sorozat') {
-        // Robusztus értékkiolvasás és tisztítás: NaN -> 0 vagy null
         const rawWatched = watchedEpInput ? parseInt(watchedEpInput.value) : NaN;
         const rawMax = maxEpInput ? parseInt(maxEpInput.value) : NaN;
 
-        // Adatok tisztítása/korlátozása - Robusztus NaN/negatív/nulla kezelés
         let newWatchedEpisodes = (isNaN(rawWatched) || rawWatched < 0) ? 0 : rawWatched;
         let newMaxEpisodes = (isNaN(rawMax) || rawMax <= 0) ? null : rawMax;
 
-        // Frissítési adatok hozzáadása
         updateData.watchedEpisodes = newWatchedEpisodes; 
         updateData.maxEpisodes = newMaxEpisodes;
          
-        // Státusz frissítése az új értékek alapján
         let newStatus = 'nézendő';
         
         if (newMaxEpisodes !== null && newWatchedEpisodes >= newMaxEpisodes) {
@@ -331,11 +326,11 @@ window.saveMediaItem = async function(firestoreId) {
     
     try {
         await updateDoc(doc(getMediaCollectionRef(), firestoreId), updateData);
-        // FIX: A mentés sikeres volt, kikapcsoljuk a szerkesztési módot.
-        toggleEditMode(firestoreId); 
+        // TÖRÖLTEM a toggleEditMode hívást. 
+        // KIZÁRÓLAG a Firebase onSnapshot figyelőjére támaszkodunk a UI visszaállításához.
     } catch (e) {
         console.error("Kritikus hiba az elem frissítésekor: ", e);
-        // Ha hiba van, a gomb a Mentés állapotban marad, jelezve a hibát.
+        // Hiba esetén visszakapcsoljuk a szerkesztési módot, ha épp ki lett volna kapcsolva (bár most már nincs hívva)
     }
 }
 
@@ -346,9 +341,7 @@ window.toggleEditMode = function(firestoreId) {
     const linkDisplayDiv = document.getElementById(`link-display-div-${firestoreId}`);
     const linkInput = document.getElementById(`link-edit-${firestoreId}`);
     
-    // Max epizód mező (Csak input)
     const maxEpInput = document.getElementById(`max-episode-edit-${firestoreId}`);
-    // Nézett epizód mező (Csak input)
     const watchedEpInput = document.getElementById(`watched-episode-edit-${firestoreId}`); 
 
     const notesDisplay = document.getElementById(`notes-display-${firestoreId}`);
@@ -506,8 +499,8 @@ window.saveGameItem = async function(firestoreId) {
     
     try {
         await updateDoc(doc(getGameCollectionRef(), firestoreId), updateData);
-        // FIX: A mentés sikeres volt, kikapcsoljuk a szerkesztési módot.
-        window.toggleGameEditMode(firestoreId);
+        // TÖRÖLTEM a window.toggleGameEditMode hívást. 
+        // KIZÁRÓLAG a Firebase onSnapshot figyelőjére támaszkodunk a UI visszaállításához.
     } catch (e) {
         console.error("Hiba a játék elem frissítésekor: ", e);
     }
@@ -1113,9 +1106,11 @@ function handleListClick(event) {
     
     if (target.matches('[data-action="save-media"]')) {
          saveMediaItem(firestoreId);
+         // Nincs toggleEditMode hívás itt sem, a saveMediaItem-ből kivéve
     }
 
     if (target.matches('[data-action="cancel-media"]')) {
+         // A Mégse gomb továbbra is azonnal kikapcsolja a szerkesztést (mert nincs adatbázis frissítés)
          toggleEditMode(firestoreId); 
     }
 }
