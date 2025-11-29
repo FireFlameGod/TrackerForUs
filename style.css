@@ -259,7 +259,7 @@ button:hover { opacity: 0.9; transform: translateY(-1px); }
     /* MEGOLDÁS: Hogy kisebb képernyőn ne folyjon ki */
     max-width: 100%; 
     /* EZ ADJA A HELYET FELETTE ÉS ALATTA */
-    margin: 7px 0; 
+    margin: 5px 0; 
     box-sizing: border-box;
     display: none; 
 }
