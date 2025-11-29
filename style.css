@@ -42,156 +42,226 @@ body {
 .login-box {
     background-color: #333;
     padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
-    max-width: 400px;
-    width: 90%;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    width: 300px;
 }
-.error-message { color: #dc3545; margin-top: 10px; font-weight: bold; }
-#access-key-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #555; border-radius: 6px; background-color: #444; color: #f0f0f0; font-size: 1.1em; text-align: center; }
-.login-button { width: 100%; padding: 12px; font-size: 1.1em; }
 
+#access-key-input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 10px 0 15px 0;
+    border: none;
+    border-radius: 4px;
+    background-color: #444;
+    color: white;
+}
 
-/* --- ALKALMAZÁS STÍLUSOK --- */
-h1, h2, h3 { color: var(--theme-color); border-bottom: 2px solid #3d3d3d; padding-bottom: 5px; }
-.color-picker-area { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
-
-/* Fő és Alb Tabok stílusa */
-.tabs { margin-bottom: 10px; display: flex; flex-wrap: wrap; }
-.tabs button { 
-    background-color: #3e3e3e; 
-    color: #f0f0f0; 
-    margin-right: 5px; 
-    margin-bottom: 5px; 
-    padding: 10px 15px; 
-    border: none; 
-    cursor: pointer; 
-    transition: background-color 0.2s; 
-    white-space: nowrap;
+.login-button {
+    background-color: var(--theme-color);
+    color: #1e1e1e;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
     font-weight: bold;
+    transition: background-color 0.3s;
 }
 
-.main-tabs button {
-    border-radius: 8px 8px 0 0;
-    font-size: 1.1em;
-    padding: 12px 20px;
+.login-button:hover {
+    filter: brightness(1.1);
 }
 
-.main-tabs .active-main-tab { 
-    background-color: var(--theme-color); 
-    color: #1e1e1e; 
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-.sub-tabs {
+.error-message {
+    color: #ff4d4d;
     margin-top: 10px;
-    padding-left: 20px; 
-    border-bottom: 2px solid #3e3e3e;
+}
+
+/* --- ÁLTALÁNOS STÍLUSOK --- */
+
+h1, h2 {
+    color: var(--theme-color);
+}
+
+.header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
 }
 
-.sub-tabs button {
-    border-radius: 6px 6px 0 0;
-    font-size: 0.9em;
-    padding: 8px 12px;
-    background-color: #4c4c4c;
+.logout-btn {
+    background: none;
+    color: #aaa;
+    border: 1px solid #aaa;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
-.sub-tabs .active-sub-tab { 
-    background-color: var(--theme-color); 
+.tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #333;
+}
+
+.main-tab, .sub-tab {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border-radius: 6px 6px 0 0;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.main-tab:hover, .sub-tab:hover {
+    background-color: #333;
+}
+
+.active-main-tab, .active-sub-tab {
+    background-color: var(--theme-color);
     color: #1e1e1e;
 }
 
-.input-area { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; background-color: #3e3e3e; padding: 15px; border-radius: 8px; }
-.input-area > * {
-    flex-basis: 0;
-    flex-grow: 1;
-    min-width: 150px; 
+.active-main-tab {
+    margin-bottom: -2px;
+    border-bottom: 2px solid var(--theme-color);
 }
-.input-area button { flex-grow: 0; flex-shrink: 0; min-width: 150px; }
 
-
-.tracker-list { list-style: none; padding: 0; }
-.tracker-item { 
-    background: #444; 
-    padding: 15px; 
-    margin-bottom: 10px; 
-    border-radius: 8px; 
-    border-left: 5px solid var(--theme-color); 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: flex-start;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4); 
-    flex-wrap: wrap; 
+/* --- BEVITELI MEZŐK --- */
+.input-area {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+    flex-wrap: wrap; /* Hogy kisebb képernyőn is működjön */
 }
-.tracker-item.watched { border-left: 5px solid #28a745; opacity: 0.8; }
 
-/* 🖼️ KÉP ÁTMÉRETEZÉS STÍLUSOK (A nyúlás megakadályozása) */
-.thumbnail-container {
-    flex-shrink: 0; 
-    /* ÚJ KOMPROMISSZUMOS MÉRET: Álló (poszter) arányhoz igazítva, de nagyobb */
-    width: 120px; 
-    height: 180px; 
-    margin-right: 15px; 
+.input-area input[type="text"],
+.input-area input[type="url"],
+.input-area input[type="number"],
+.input-area select {
+    padding: 10px;
+    border: 1px solid #444;
     border-radius: 4px;
-    overflow: hidden; 
-    background-color: #333; 
+    background-color: #333;
+    color: #f0f0f0;
+    flex-grow: 1; 
+    min-width: 100px;
+}
+
+.input-area button {
+    background-color: var(--theme-color);
+    color: #1e1e1e;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* --- LISTA STÍLUSOK --- */
+.tracker-list {
+    list-style: none;
+    padding: 0;
+}
+
+.tracker-item {
+    background-color: #333;
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s;
+}
+
+.tracker-item.watched {
+    background-color: #4a4a4a;
+    opacity: 0.7;
+}
+
+/* --- THUMBNAIL STÍLUSOK --- */
+.thumbnail-container {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #1e1e1e;
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 1px solid #555;
-    text-align: center; 
-    color: #888;
+    margin-right: 15px;
+    font-size: 2em;
 }
 
 .thumbnail-img {
     width: 100%;
     height: 100%;
-    object-fit: contain; 
-    display: block;
-    padding: 5px; 
-    box-sizing: border-box;
+    object-fit: cover;
 }
 
-/* MÓDOSÍTOTT INPUT STÍLUS */
-input:not([type="color"]), select { 
-    padding: 10px; 
-    border: 1px solid #555; 
-    border-radius: 6px; 
-    background-color: #3e3e3e; 
-    color: #f0f0f0; 
-    box-sizing: border-box; 
+/* --- RÉSZLETEK ÉS VEZÉRLŐK --- */
+.item-details {
+    flex-grow: 1;
+    min-width: 150px;
+    margin-right: 15px;
 }
 
-/* ÚJ: Kereső mező stílusa (Most már mindkét kereső mezőre vonatkozóan) */
-#search-input, #game-search-input { 
-    width: 100%; 
-    margin-bottom: 20px;
-    padding: 12px;
-    font-size: 1.1em;
+.item-details strong {
+    font-size: 1.2em;
+    color: #fff;
+    display: block; 
+    margin-bottom: 5px;
 }
 
-/* GOMB STÍLUSOK */
-button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background-color 0.2s, transform 0.1s; background-color: var(--theme-color); color: #1e1e1e; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); }
-button:hover { opacity: 0.9; transform: translateY(-1px); }
-
-.logout-btn { background-color: #555; color: #f0f0f0; margin-left: 10px; }
-
-/* EPIZÓD VEZÉRLÉS STÍLUS */
-.episode-controls { 
-    display: flex; 
-    align-items: center; 
-    gap: 10px; 
-    margin-right: 15px; 
-    flex-wrap: wrap;
+.item-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-end; 
+    min-width: 100px;
 }
-.episode-controls span {
+
+.controls-row {
+    display: flex;
+    gap: 5px;
+    /* Fontos, hogy a gombok ne törjenek be a sorban */
+    flex-wrap: nowrap; 
+    align-items: center;
+}
+
+/* --- EPISODE STÍLUSOK --- */
+.episode-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
     font-size: 0.9em;
-    white-space: nowrap;
+    padding-right: 10px;
+    white-space: nowrap; 
 }
-.episode-controls button { background-color: #555; color: #f0f0f0; padding: 5px 10px; box-shadow: none; }
 
-/* Fő szerkesztő gomb (Edit, Mentés, Mégse, Send, Back) stílusa */
+.episode-controls button {
+    background-color: #555;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0;
+    line-height: 1;
+    flex-shrink: 0; 
+}
+
+/* --- GOMB STÍLUSOK --- */
+
 .title-action-btn { 
     font-size: 1em; 
     padding: 10px 15px; 
@@ -200,71 +270,69 @@ button:hover { opacity: 0.9; transform: translateY(-1px); }
     border-radius: 6px;
     background-color: var(--theme-color); 
     color: #1e1e1e; 
-    width: 120px; 
+    /* width: 120px; */ /* JAVÍTVA: Eltávolítva */
     margin-top: 5px; 
     text-align: center;
+    cursor: pointer;
+    border: none;
+    transition: filter 0.2s;
 }
 
-/* Külön Mentés és Mégse színek, amelyek kontrasztosak */
-.save-button { background-color: #28a745; color: white; } 
-.cancel-button { background-color: #6c757d; color: white; } 
+.title-action-btn:hover {
+    filter: brightness(1.1);
+}
 
-/* Törlés gomb stílusa, amihez a többinek igazodnia kell */
 .delete-button-matched { 
     background-color: #dc3545; 
     color: white; 
-    width: 120px; 
-    margin-left: 10px; 
+    /* width: 120px; */ /* JAVÍTVA: Eltávolítva */
+    /* margin-left: 10px; */ /* JAVÍTVA: Eltávolítva */
 }
 
-/* Vezérlők konténere */
-.item-controls { 
-    display: flex; 
-    align-items: center; 
-    flex-wrap: wrap; 
-    gap: 10px; 
-    margin-top: 5px;
-    flex-direction: column; 
-    align-items: flex-end; 
-    gap: 5px;
-    min-width: 170px; 
+.edit-button {
+    background-color: #4a4a4a;
+    color: white;
 }
 
-/* Hogy a Statusz, Törlés és Epizód vezérlő egy sorban maradjon */
-.item-controls .controls-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.save-button {
+    background-color: #28a745;
 }
 
-.item-details { display: flex; flex-direction: column; margin-right: 20px; flex-grow: 1; min-width: 200px; }
-.item-title-container { 
-    display: flex; 
-    align-items: center; 
-    gap: 5px; 
-    flex-wrap: wrap;
-} 
+.cancel-button {
+    background-color: #6c757d;
+    color: white;
+}
 
-.item-details span { margin-top: 5px; font-size: 0.9em; color: #aaa; }
-.item-details a { color: var(--theme-color); text-decoration: none; font-size: 0.9em; margin-top: 3px; font-weight: 500; }
-.header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+/* --- SZERKESZTÉSI INPUTOK --- */
+.title-edit-input {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 5px;
+    margin: -5px 0 5px 0;
+    border: 1px solid var(--theme-color);
+    border-radius: 4px;
+    background-color: #3e3e3e;
+    color: #fff;
+    width: 90%; 
+}
 
-/* 💡 JAVÍTOTT STÍLUS: Cím, Link, Max Epizód és Bélyegkép URL mezők */
-/* EZ BIZTOSÍTJA AZ AZONOS HOSSZT (350px) ÉS A MARGÓT A MEZŐK KÖRÜL */
-.title-edit-input, .link-edit-input, .max-episode-edit-input, .thumbnail-edit-input { 
-    padding: 5px; 
-    font-size: 1em; 
-    border-radius: 4px; 
-    border: 1px solid var(--theme-color); 
-    background-color: #333;
-    /* MEGOLDÁS: Fix szélesség a garantált egyezésért */
-    width: 350px; 
-    /* MEGOLDÁS: Hogy kisebb képernyőn ne folyjon ki */
-    max-width: 100%; 
-    /* EZ ADJA A HELYET FELETTE ÉS ALATTA */
-    margin: 5px 0; 
-    box-sizing: border-box;
-    display: none; 
+.link-edit-input, .thumbnail-edit-input, .max-episode-edit-input {
+    font-size: 1em;
+    padding: 5px;
+    margin: 5px 0;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #3e3e3e;
+    color: #ccc;
+    width: 90%; 
+    box-sizing: border-box; 
+    display: block;
+}
+
+.max-episode-edit-input {
+    width: 100px;
+    display: inline-block;
+    margin-right: 10px;
 }
 
 /* --- MEGJEGYZÉSEK STÍLUSAI --- */
@@ -301,33 +369,50 @@ button:hover { opacity: 0.9; transform: translateY(-1px); }
     color: #f0f0f0;
     font-size: 0.9em;
     box-sizing: border-box;
-    resize: none; 
 }
 
-/* --- HALADÓ ADATOK STÍLUSA --- */
-#advanced-info-toggle {
-    background-color: #333;
-    color: #f0f0f0;
-    padding: 8px 12px;
-    font-size: 0.9em;
-    margin-top: 15px;
+/* --- EGYÉB --- */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    text-align: left;
+    height: 100%;
+    background-color: #1e1e1e;
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    z-index: 1000;
+}
+
+#advanced-info-toggle {
+    background: none;
+    border: none;
+    color: var(--theme-color);
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    margin-top: 10px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
 }
-#advanced-info-content {
-    background-color: #3e3e3e;
-    padding: 10px 15px;
-    border-radius: 0 0 8px 8px;
-    border-top: 1px solid #555;
-    font-size: 0.9em;
-    color: #ccc;
+
+#toggle-icon {
+    margin-left: 5px;
 }
+
+#advanced-info-content {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #444;
+    border-radius: 6px;
+    background-color: #333;
+    display: none;
+    font-size: 0.9em;
+}
+
 #advanced-info-content p {
     margin: 5px 0;
-}
-#advanced-info-content strong {
-    color: var(--theme-color);
 }
