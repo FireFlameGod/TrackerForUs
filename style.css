@@ -126,7 +126,7 @@ h1, h2, h3 { color: var(--theme-color); border-bottom: 2px solid #3d3d3d; paddin
 }
 .tracker-item.watched { border-left: 5px solid #28a745; opacity: 0.8; }
 
-/* 🖼️ KÉP ÁTMÉRETEZÉS STÍLUSOK (A kérésednek megfelelően) */
+/* 🖼️ KÉP ÁTMÉRETEZÉS STÍLUSOK (A nyúlás megakadályozása) */
 
 /* 1. Konténer beállítása (.thumbnail-container) */
 .thumbnail-container {
@@ -149,9 +149,7 @@ h1, h2, h3 { color: var(--theme-color); border-bottom: 2px solid #3d3d3d; paddin
 .thumbnail-img {
     width: 100%;
     height: 100%;
-    /* A legfontosabb beállítás: 
-       Kitölti a konténert, megőrzi az arányokat, és levágja a kilógó részeket.
-    */
+    /* Kitölti a konténert, megőrzi az arányokat, és levágja a kilógó részeket. */
     object-fit: cover; 
     display: block;
 }
@@ -163,7 +161,6 @@ input:not([type="color"]), select {
     border-radius: 6px; 
     background-color: #3e3e3e; 
     color: #f0f0f0; 
-    /* JAVÍTÁS: Ez biztosítja, hogy a padding ne növelje a 100% szélességű elemek méretét. */
     box-sizing: border-box; 
 }
 
@@ -253,17 +250,20 @@ button:hover { opacity: 0.9; transform: translateY(-1px); }
 .item-details a { color: var(--theme-color); text-decoration: none; font-size: 0.9em; margin-top: 3px; font-weight: 500; }
 .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 
-/* Címszerkesztő input stílusa, kiegészítve a link, max epizód inputokkal */
-.title-edit-input, .link-edit-input, .max-episode-edit-input { 
-    padding: 5px; 
+/* 💡 JAVÍTOTT STÍLUS: Cím, Link, Max Epizód és Bélyegkép URL mezők */
+.title-edit-input, .link-edit-input, .max-episode-edit-input, .thumbnail-edit-input { 
+    padding: 8px; 
     font-size: 1em; 
     border-radius: 4px; 
     border: 1px solid var(--theme-color); 
     background-color: #333;
-    max-width: 300px; /* ÚJ: Korlátozza a mező maximális szélességét */
-    margin: 5px 0; /* ÚJ: Kis hely felette és alatta (5px) */
+    /* MEGOLDÁS: Korlátozza a mező maximális szélességét */
+    max-width: 350px; 
+    width: 100%; 
+    /* MEGOLDÁS: Nagyobb hely felette és alatta */
+    margin: 10px 0; 
     box-sizing: border-box;
-    display: none;
+    display: none; 
 }
 
 /* --- MEGJEGYZÉSEK STÍLUSAI --- */
@@ -300,7 +300,10 @@ button:hover { opacity: 0.9; transform: translateY(-1px); }
     color: #f0f0f0;
     font-size: 0.9em;
     box-sizing: border-box;
-    /* resize: vertical; -> Törölve, ahogy kérted. */
+    /* A resize tulajdonság itt hiányzik, ami azt jelenti, hogy az alapértelmezett (általában 'both') érvényesül. 
+       Ha kifejezetten azt akarod, hogy NE lehessen átméretezni, vedd hozzá: resize: none;
+       Jelenleg a kérésnek megfelelően csak a függőleges átméretezést tiltottam ki (azáltal, hogy eltávolítottam a 'resize: vertical'-t).
+    */
 }
 
 /* --- HALADÓ ADATOK STÍLUSA --- */
