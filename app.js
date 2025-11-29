@@ -150,7 +150,6 @@ function startFirestoreListeners() {
     onSnapshot(getGameCollectionRef(), (snapshot) => {
         gameList = snapshot.docs.map(doc => ({
             firestoreId: doc.id,
-            // ÚJ: A thumbnail és notes mező beolvasása, alapértelmezett értékekkel
             thumbnailUrl: doc.data().thumbnailUrl || null,
             notes: doc.data().notes || '',
             ...doc.data()
@@ -280,12 +279,16 @@ window.saveMediaItem = async function(firestoreId) {
     const titleInput = document.getElementById(`title-edit-${firestoreId}`);
     const linkInput = document.getElementById(`link-edit-${firestoreId}`);
     const maxEpInput = document.getElementById(`max-episode-edit-${firestoreId}`); 
+    // ÚJ: watched episodes input
+    const watchedEpInput = document.getElementById(`watched-episode-edit-${firestoreId}`); 
     const notesTextarea = document.getElementById(`notes-edit-${firestoreId}`); 
     const thumbnailInput = document.getElementById(`thumbnail-edit-${firestoreId}`);
     
     const newTitle = titleInput ? titleInput.value.trim() : null;
     const newLink = linkInput ? linkInput.value.trim() : null;
     const newMaxEpisodes = maxEpInput ? parseInt(maxEpInput.value) : null; 
+    // ÚJ: watched episodes érték
+    let newWatchedEpisodes = watchedEpInput ? parseInt(watchedEpInput.value) : null; 
     const newNotes = notesTextarea ? notesTextarea.value : null;
     const newThumbnailUrl = thumbnailInput ? thumbnailInput.value.trim() : null;
 
@@ -306,13 +309,22 @@ window.saveMediaItem = async function(firestoreId) {
     const currentItem = trackerList.find(item => item.firestoreId === firestoreId);
 
     if (currentItem && currentItem.tipus === 'sorozat') {
-         updateData.maxEpisodes = newMaxEpisodes && newMaxEpisodes > 0 ? newMaxEpisodes : null;
+        // Adatok tisztítása/korlátozása
+        newWatchedEpisodes = newWatchedEpisodes !== null && newWatchedEpisodes >= 0 ? newWatchedEpisodes : 0;
+        newMaxEpisodes = newMaxEpisodes && newMaxEpisodes > 0 ? newMaxEpisodes : null;
+
+        // Frissítési adatok hozzáadása
+        updateData.watchedEpisodes = newWatchedEpisodes; // MÓDOSÍTVA
+        updateData.maxEpisodes = newMaxEpisodes;
          
-         if (updateData.maxEpisodes && currentItem.watchedEpisodes >= updateData.maxEpisodes) {
-             updateData.statusz = 'megnézve';
-         } else if (currentItem.statusz === 'megnézve' && currentItem.watchedEpisodes < (updateData.maxEpisodes || 0)) {
-             updateData.statusz = 'nézendő';
-         }
+        // Státusz frissítése az új értékek alapján
+        let newStatus = 'nézendő';
+        
+        if (newMaxEpisodes !== null && newWatchedEpisodes >= newMaxEpisodes) {
+             newStatus = 'megnézve';
+        } 
+        
+        updateData.statusz = newStatus; // MÓDOSÍTVA
     }
     
     try {
@@ -329,7 +341,10 @@ window.toggleEditMode = function(firestoreId) {
     const linkDisplayDiv = document.getElementById(`link-display-div-${firestoreId}`);
     const linkInput = document.getElementById(`link-edit-${firestoreId}`);
     
+    // Max epizód mező (Csak input)
     const maxEpInput = document.getElementById(`max-episode-edit-${firestoreId}`);
+    // ÚJ: Nézett epizód mező (Csak input)
+    const watchedEpInput = document.getElementById(`watched-episode-edit-${firestoreId}`); 
 
     const notesDisplay = document.getElementById(`notes-display-${firestoreId}`);
     const notesTextarea = document.getElementById(`notes-edit-${firestoreId}`);
@@ -366,7 +381,14 @@ window.toggleEditMode = function(firestoreId) {
         }
 
         if (currentItem.tipus === 'sorozat') {
-            if (maxEpInput) maxEpInput.style.display = 'inline-block';
+            if (watchedEpInput) { // ÚJ MEZŐ TOGGLE
+                watchedEpInput.style.display = 'inline-block';
+                watchedEpInput.value = currentItem.watchedEpisodes || 0;
+            }
+            if (maxEpInput) {
+                maxEpInput.style.display = 'inline-block';
+                maxEpInput.value = currentItem.maxEpisodes || ''; 
+            }
         }
 
         if (notesDisplay) notesDisplay.style.display = 'none';
@@ -374,8 +396,6 @@ window.toggleEditMode = function(firestoreId) {
             notesTextarea.style.display = 'block';
             notesTextarea.value = currentItem.notes || ''; 
         }
-        
-        if (maxEpInput) maxEpInput.value = currentItem.maxEpisodes || ''; 
         
         if (sendBtn) sendBtn.style.display = 'none'; 
         if (backBtn) backBtn.style.display = 'none'; 
@@ -395,6 +415,7 @@ window.toggleEditMode = function(firestoreId) {
         if (thumbnailInput) thumbnailInput.style.display = 'none';
 
         if (currentItem.tipus === 'sorozat') {
+            if (watchedEpInput) watchedEpInput.style.display = 'none'; // ÚJ MEZŐ TOGGLE
             if (maxEpInput) maxEpInput.style.display = 'none';
         }
 
@@ -415,7 +436,6 @@ window.toggleEditMode = function(firestoreId) {
 
 window.addNewGame = async function() {
     const cim = document.getElementById('game-cim-input').value.trim();
-    // ÚJ: Kép URL beolvasása
     const thumbnailUrlInput = document.getElementById('game-thumbnail-input').value.trim();
     const platform = document.getElementById('game-platform-select').value;
     
@@ -425,9 +445,8 @@ window.addNewGame = async function() {
         cim: cim,
         platform: platform,
         statusz: "játszandó",
-        // ÚJ: thumbnail URL mentése
         thumbnailUrl: thumbnailUrlInput || null,
-        notes: "" // ÚJ: Üres megjegyzés hozzáadása
+        notes: "" 
     };
     
     try {
@@ -720,8 +739,21 @@ window.renderLists = function() {
         thumbnailInput.placeholder = 'Kép URL (thumbnail)';
         itemDetails.appendChild(thumbnailInput);
         
-        // F. Max Epizód Szerkesztés INPUT (Csak sorozatnál)
+        // F. Epizódok Szerkesztése INPUTOK (Csak sorozatnál)
         if (item.tipus === 'sorozat') {
+            // Aktuális Epizód INPUT
+            const watchedEpInput = document.createElement('input'); 
+            watchedEpInput.type = 'number';
+            watchedEpInput.id = `watched-episode-edit-${item.firestoreId}`; 
+            watchedEpInput.value = item.watchedEpisodes || 0;
+            watchedEpInput.className = 'episode-edit-input'; 
+            watchedEpInput.style.display = 'none'; 
+            watchedEpInput.placeholder = 'Aktuális epizód';
+            watchedEpInput.style.width = '120px'; // Kis méret a max. mellé
+            watchedEpInput.style.marginRight = '10px'; 
+            itemDetails.appendChild(watchedEpInput);
+
+            // Max Epizód INPUT
             const maxEpInput = document.createElement('input');
             maxEpInput.type = 'number';
             maxEpInput.id = `max-episode-edit-${item.firestoreId}`;
@@ -729,6 +761,7 @@ window.renderLists = function() {
             maxEpInput.className = 'max-episode-edit-input';
             maxEpInput.style.display = 'none'; 
             maxEpInput.placeholder = 'Max epizód';
+            maxEpInput.style.width = '120px'; // Kis méret az aktuális mellé
             itemDetails.appendChild(maxEpInput);
         }
         
