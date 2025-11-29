@@ -260,9 +260,10 @@ button:hover { opacity: 0.9; transform: translateY(-1px); }
     border-radius: 4px; 
     border: 1px solid var(--theme-color); 
     background-color: #333;
-    max-width: 250px; 
+    max-width: 300px; /* ÚJ: Korlátozza a mező maximális szélességét */
+    margin: 5px 0; /* ÚJ: Kis hely felette és alatta (5px) */
     box-sizing: border-box;
-    display: none; 
+    display: none;
 }
 
 /* --- MEGJEGYZÉSEK STÍLUSAI --- */
