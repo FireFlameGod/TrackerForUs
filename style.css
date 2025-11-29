@@ -134,7 +134,7 @@ h1, h2 {
     gap: 10px;
     margin-bottom: 20px;
     align-items: center;
-    flex-wrap: wrap; /* Hogy kisebb képernyőn is működjön */
+    flex-wrap: wrap; 
 }
 
 .input-area input[type="text"],
@@ -270,7 +270,7 @@ h1, h2 {
     border-radius: 6px;
     background-color: var(--theme-color); 
     color: #1e1e1e; 
-    /* width: 120px; */ /* JAVÍTVA: Eltávolítva */
+    width: 120px; /* VISSZAÁLLÍTVA */
     margin-top: 5px; 
     text-align: center;
     cursor: pointer;
@@ -285,8 +285,8 @@ h1, h2 {
 .delete-button-matched { 
     background-color: #dc3545; 
     color: white; 
-    /* width: 120px; */ /* JAVÍTVA: Eltávolítva */
-    /* margin-left: 10px; */ /* JAVÍTVA: Eltávolítva */
+    width: 120px; /* VISSZAÁLLÍTVA */
+    margin-left: 10px; /* VISSZAÁLLÍTVA */
 }
 
 .edit-button {
