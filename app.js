@@ -44,6 +44,7 @@ const CATEGORY_MAP = {
     'anime': '🇯🇵 Anime',
     'donghua': '🎎 Donghua',
     'other': '🌍 Egyéb',
+    'wifey': '👸 Wifey'
 };
 const CATEGORIES = Object.keys(CATEGORY_MAP); 
 
